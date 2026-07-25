@@ -17,7 +17,6 @@ function drawGrassTile(ctx: CanvasRenderingContext2D, rng: () => number) {
   g.addColorStop(1, '#2d6b25')
   ctx.fillStyle = g
   ctx.fillRect(0, 0, 32, 32)
-
   for (let i = 0; i < 6; i++) {
     const gx = 2 + rng() * 28, gy = 2 + rng() * 28
     ctx.strokeStyle = `rgb(${60 + rng() * 40 | 0},${120 + rng() * 50 | 0},${30 + rng() * 30 | 0})`
@@ -27,15 +26,11 @@ function drawGrassTile(ctx: CanvasRenderingContext2D, rng: () => number) {
     ctx.quadraticCurveTo(gx + rng() * 4 - 2, gy - 6 - rng() * 4, gx + rng() * 3 - 1.5, gy + 2)
     ctx.stroke()
   }
-
   for (let i = 0; i < 3; i++) {
     const fx = 4 + rng() * 24, fy = 4 + rng() * 24
     const grad = ctx.createRadialGradient(fx, fy, 0, fx, fy, 3)
-    const r = 180 + rng() * 75 | 0
-    const gr = 80 + rng() * 60 | 0
-    const b = 80 + rng() * 80 | 0
-    grad.addColorStop(0, `rgb(${r},${gr},${b})`)
-    grad.addColorStop(1, `rgba(${r},${gr},${b},0)`)
+    grad.addColorStop(0, `rgb(${180 + rng() * 75 | 0},${80 + rng() * 60 | 0},${80 + rng() * 80 | 0})`)
+    grad.addColorStop(1, `rgba(${180 + rng() * 75 | 0},${80 + rng() * 60 | 0},${80 + rng() * 80 | 0},0)`)
     ctx.fillStyle = grad
     ctx.beginPath()
     ctx.arc(fx, fy, 3, 0, Math.PI * 2)
@@ -50,7 +45,6 @@ function drawForestTile(ctx: CanvasRenderingContext2D, rng: () => number) {
   g.addColorStop(1, '#0d2a0a')
   ctx.fillStyle = g
   ctx.fillRect(0, 0, 32, 32)
-
   for (let i = 0; i < 4; i++) {
     const lx = 4 + rng() * 24, ly = 4 + rng() * 20
     const grad = ctx.createRadialGradient(lx, ly, 0, lx, ly, 8 + rng() * 4)
@@ -61,7 +55,6 @@ function drawForestTile(ctx: CanvasRenderingContext2D, rng: () => number) {
     ctx.ellipse(lx, ly, 6 + rng() * 4, 4 + rng() * 3, rng() * 0.5, 0, Math.PI * 2)
     ctx.fill()
   }
-
   for (let i = 0; i < 2; i++) {
     const mx = 6 + rng() * 20, my = 6 + rng() * 20
     ctx.shadowColor = `rgba(180,100,60,0.3)`
@@ -81,7 +74,6 @@ function drawWaterTile(ctx: CanvasRenderingContext2D, rng: () => number, t: numb
   g.addColorStop(1, `rgb(${40 * wave | 0},${120 * wave | 0},${240 * wave | 0})`)
   ctx.fillStyle = g
   ctx.fillRect(0, 0, 32, 32)
-
   for (let i = 0; i < 4; i++) {
     const wy = (i * 8 + Math.sin(t * 1.5 + i * 1.5 + rng() * 10) * 3 + 4)
     ctx.strokeStyle = `rgba(255,255,255,${0.12 + Math.sin(t * 2 + i * 2 + rng()) * 0.04})`
@@ -94,7 +86,6 @@ function drawWaterTile(ctx: CanvasRenderingContext2D, rng: () => number, t: numb
     }
     ctx.stroke()
   }
-
   for (let i = 0; i < 3; i++) {
     const rx = 4 + rng() * 20, ry = 4 + rng() * 20
     ctx.fillStyle = `rgba(180,220,255,${0.15 + Math.sin(t * 1.2 + rx) * 0.08})`
@@ -112,7 +103,6 @@ function drawStoneTile(ctx: CanvasRenderingContext2D, rng: () => number) {
   g.addColorStop(1, `rgb(${base - 20},${base - 10},${base})`)
   ctx.fillStyle = g
   ctx.fillRect(0, 0, 32, 32)
-
   for (let i = 0; i < 3; i++) {
     const sx = 4 + i * 10 + rng() * 4, sy = 6 + i * 8 + rng() * 4
     ctx.fillStyle = `rgb(${base - 15},${base - 5},${base + 5})`
@@ -120,7 +110,6 @@ function drawStoneTile(ctx: CanvasRenderingContext2D, rng: () => number) {
     ctx.ellipse(sx, sy, 4 + rng() * 3, 2 + rng() * 1.5, rng() * 0.3, 0, Math.PI * 2)
     ctx.fill()
   }
-
   for (let i = 0; i < 3; i++) {
     const cx = 4 + rng() * 20, cy = 4 + rng() * 20
     ctx.strokeStyle = `rgb(${base - 30},${base - 25},${base - 20})`
@@ -133,7 +122,6 @@ function drawStoneTile(ctx: CanvasRenderingContext2D, rng: () => number) {
     }
     ctx.stroke()
   }
-
   for (let i = 0; i < 2; i++) {
     const mx = 4 + rng() * 24, my = 4 + rng() * 24
     ctx.fillStyle = `rgb(${50 + rng() * 30 | 0},${80 + rng() * 30 | 0},${30 + rng() * 20 | 0})`
@@ -151,7 +139,6 @@ function drawSandTile(ctx: CanvasRenderingContext2D, rng: () => number) {
   g.addColorStop(1, `rgb(${base},${base - 20},${50 + rng() * 20 | 0})`)
   ctx.fillStyle = g
   ctx.fillRect(0, 0, 32, 32)
-
   for (let i = 0; i < 15; i++) {
     const sx = rng() * 30, sy = rng() * 30
     ctx.fillStyle = `rgb(${base + 15},${base - 5},${55 + rng() * 20 | 0})`
@@ -159,7 +146,6 @@ function drawSandTile(ctx: CanvasRenderingContext2D, rng: () => number) {
     ctx.arc(sx, sy, 0.8 + rng() * 0.8, 0, Math.PI * 2)
     ctx.fill()
   }
-
   for (let i = 0; i < 3; i++) {
     const sx = rng() * 26, sy = rng() * 26
     ctx.fillStyle = `rgb(${base + 30},${base + 10},${70 + rng() * 20 | 0})`
@@ -177,10 +163,8 @@ function drawLavaTile(ctx: CanvasRenderingContext2D, rng: () => number, t: numbe
   g.addColorStop(1, `rgb(${150 * pulse | 0},${30 * pulse | 0},${5 * pulse | 0})`)
   ctx.fillStyle = g
   ctx.fillRect(0, 0, 32, 32)
-
   ctx.shadowColor = `rgba(255,150,50,0.4)`
   ctx.shadowBlur = 6
-
   for (let i = 0; i < 3; i++) {
     const ly = (i * 10 + Math.sin(t * 2 + i * 2 + rng() * 10) * 4 + 5)
     const bright = 0.3 + Math.sin(t * 1.5 + i * 1.5 + rng() * 8) * 0.15
@@ -199,7 +183,6 @@ function drawLavaTile(ctx: CanvasRenderingContext2D, rng: () => number, t: numbe
     ctx.closePath()
     ctx.fill()
   }
-
   ctx.shadowBlur = 0
 }
 
@@ -211,7 +194,6 @@ function drawSnowTile(ctx: CanvasRenderingContext2D, rng: () => number) {
   g.addColorStop(1, `rgb(${base - 15},${base - 15},${base - 5})`)
   ctx.fillStyle = g
   ctx.fillRect(0, 0, 32, 32)
-
   for (let i = 0; i < 6; i++) {
     const sx = rng() * 28, sy = rng() * 28
     ctx.fillStyle = `rgb(${235 + rng() * 20 | 0},${235 + rng() * 20 | 0},${250 + rng() * 5 | 0})`
@@ -223,7 +205,6 @@ function drawSnowTile(ctx: CanvasRenderingContext2D, rng: () => number) {
     ctx.arc(sx + 0.5, sy + 0.5, 0.6, 0, Math.PI * 2)
     ctx.fill()
   }
-
   ctx.fillStyle = `rgba(200,220,255,0.12)`
   for (let i = 0; i < 3; i++) {
     const sx = rng() * 26, sy = rng() * 26
@@ -249,6 +230,216 @@ export const ProceduralTiles = {
   }
 }
 
+function drawEye(ctx: CanvasRenderingContext2D, sx: number, sy: number, open: number, color = '#1e293b') {
+  ctx.fillStyle = '#f8fafc'
+  ctx.beginPath()
+  ctx.ellipse(sx, sy, 3.5 * open, 3.5, 0, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.ellipse(sx, sy, 2, 2.5, 0, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillStyle = '#0f172a'
+  ctx.beginPath()
+  ctx.ellipse(sx, sy, 1, 1.5, 0, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillStyle = '#f8fafc'
+  ctx.beginPath()
+  ctx.ellipse(sx + 0.8, sy - 0.8, 0.8, 0.8, 0, 0, Math.PI * 2)
+  ctx.fill()
+}
+
+function drawBrow(ctx: CanvasRenderingContext2D, sx: number, sy: number, angle: number) {
+  ctx.strokeStyle = '#1e293b'
+  ctx.lineWidth = 1.5
+  ctx.beginPath()
+  ctx.moveTo(sx - 3, sy + angle * 1.5)
+  ctx.lineTo(sx + 3, sy - angle * 1.5)
+  ctx.stroke()
+}
+
+function drawMouth(ctx: CanvasRenderingContext2D, sx: number, sy: number, w: number) {
+  ctx.strokeStyle = '#4a2c1a'
+  ctx.lineWidth = 1.2
+  ctx.beginPath()
+  ctx.arc(sx, sy + 1, w, 0.1, Math.PI - 0.1)
+  ctx.stroke()
+}
+
+function drawNose(ctx: CanvasRenderingContext2D, sx: number, sy: number) {
+  ctx.fillStyle = '#e8b87a'
+  ctx.beginPath()
+  ctx.ellipse(sx, sy, 1.2, 1.8, 0, 0, Math.PI * 2)
+  ctx.fill()
+}
+
+function drawEar(ctx: CanvasRenderingContext2D, sx: number, sy: number, skin: string) {
+  ctx.fillStyle = skin
+  ctx.beginPath()
+  ctx.ellipse(sx, sy, 2, 3.5, 0, 0, Math.PI * 2)
+  ctx.fill()
+}
+
+function drawCape(ctx: CanvasRenderingContext2D, sx: number, sy: number, w: number, h: number, color: string, wave: number, t: number) {
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(sx - w / 2, sy)
+  for (let i = 0; i <= 8; i++) {
+    const px = sx - w / 2 + (w * i) / 8
+    const wx = Math.sin(t * 2.5 + i * 0.8) * wave
+    ctx.lineTo(px, sy + (h * i) / 8 + wx)
+  }
+  for (let i = 8; i >= 0; i--) {
+    const px = sx - w / 2 + (w * i) / 8
+    const wx = Math.sin(t * 2.5 + i * 0.8) * wave
+    ctx.lineTo(px, sy + (h * i) / 8 + wx + h * 0.3)
+  }
+  ctx.closePath()
+  ctx.fill()
+}
+
+function drawBeard(ctx: CanvasRenderingContext2D, sx: number, sy: number, w: number, h: number, color: string) {
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(sx - w / 2, sy)
+  for (let i = 0; i <= 6; i++) {
+    const px = sx - w / 2 + (w * i) / 6
+    const py = sy + h * 0.3 + Math.sin(i * 0.8) * h * 0.2
+    ctx.lineTo(px, py)
+  }
+  ctx.lineTo(sx, sy + h)
+  ctx.closePath()
+  ctx.fill()
+}
+
+function drawRobeGlow(ctx: CanvasRenderingContext2D, sx: number, sy: number, w: number, h: number, glow: number) {
+  ctx.globalAlpha = glow
+  ctx.fillStyle = '#60a5fa'
+  ctx.beginPath()
+  ctx.ellipse(sx, sy + h * 0.5, w * 0.4, h * 0.3, 0, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillStyle = '#93c5fd'
+  ctx.beginPath()
+  ctx.ellipse(sx - w * 0.15, sy + h * 0.4, w * 0.15, h * 0.15, 0, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillStyle = '#bfdbfe'
+  ctx.beginPath()
+  ctx.ellipse(sx + w * 0.15, sy + h * 0.6, w * 0.1, h * 0.1, 0, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.globalAlpha = 1
+}
+
+function drawBoot(ctx: CanvasRenderingContext2D, sx: number, sy: number, w: number, h: number, color: string) {
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(sx, sy)
+  ctx.lineTo(sx + w, sy)
+  ctx.lineTo(sx + w + 1, sy + h)
+  ctx.lineTo(sx - 1, sy + h)
+  ctx.closePath()
+  ctx.fill()
+}
+
+function drawGoblinEar(ctx: CanvasRenderingContext2D, sx: number, sy: number, flip: number) {
+  ctx.fillStyle = '#16a34a'
+  ctx.beginPath()
+  ctx.moveTo(sx, sy)
+  ctx.lineTo(sx + flip * 5, sy - 3)
+  ctx.lineTo(sx + flip * 4, sy + 3)
+  ctx.closePath()
+  ctx.fill()
+}
+
+function drawSpike(ctx: CanvasRenderingContext2D, sx: number, sy: number, h: number, flip: number) {
+  ctx.fillStyle = '#dc2626'
+  ctx.beginPath()
+  ctx.moveTo(sx, sy)
+  ctx.lineTo(sx + flip * 3, sy - h)
+  ctx.lineTo(sx + flip * 5, sy)
+  ctx.closePath()
+  ctx.fill()
+}
+
+function drawLegs(ctx: CanvasRenderingContext2D, sx: number, sy: number, w: number, h: number, color: string, wc: number) {
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(sx - w / 2, sy + wc * -1)
+  ctx.quadraticCurveTo(sx - w / 2, sy + h + wc * -1, sx + w / 2, sy + h + wc * -1)
+  ctx.quadraticCurveTo(sx + w / 2, sy + wc * -1, sx - w / 2, sy + wc * -1)
+  ctx.fill()
+  ctx.beginPath()
+  ctx.moveTo(sx + w + 2, sy + wc)
+  ctx.quadraticCurveTo(sx + w + 2, sy + h + wc, sx + w + w / 2 + 2, sy + h + wc)
+  ctx.quadraticCurveTo(sx + w + w / 2 + 2, sy + wc, sx + w + 2, sy + wc)
+  ctx.fill()
+}
+
+function drawArm(ctx: CanvasRenderingContext2D, sx: number, sy: number, len: number, angle: number, color: string, w: number = 3) {
+  ctx.strokeStyle = color
+  ctx.lineWidth = w
+  ctx.lineCap = 'round'
+  ctx.beginPath()
+  ctx.moveTo(sx, sy)
+  ctx.quadraticCurveTo(sx + Math.cos(angle) * len * 0.5, sy + Math.sin(angle) * len * 0.5 - 2, sx + Math.cos(angle) * len, sy + Math.sin(angle) * len)
+  ctx.stroke()
+}
+
+function drawBodyTorso(ctx: CanvasRenderingContext2D, sx: number, sy: number, w: number, h: number, color: string) {
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(sx - w / 2, sy)
+  ctx.quadraticCurveTo(sx - w / 2 - 2, sy + h * 0.3, sx - w / 2 + 1, sy + h * 0.6)
+  ctx.quadraticCurveTo(sx, sy + h, sx + w / 2 - 1, sy + h * 0.6)
+  ctx.quadraticCurveTo(sx + w / 2 + 2, sy + h * 0.3, sx + w / 2, sy)
+  ctx.closePath()
+  ctx.fill()
+}
+
+function drawHatCone(ctx: CanvasRenderingContext2D, sx: number, sy: number, w: number, h: number, color: string) {
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(sx - w / 2, sy)
+  ctx.quadraticCurveTo(sx - w / 4, sy - h * 0.7, sx, sy - h)
+  ctx.quadraticCurveTo(sx + w / 4, sy - h * 0.7, sx + w / 2, sy)
+  ctx.closePath()
+  ctx.fill()
+}
+
+function drawHelmet(ctx: CanvasRenderingContext2D, sx: number, sy: number, color: string, highlight: string) {
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(sx - 6, sy)
+  ctx.quadraticCurveTo(sx, sy - 8, sx + 6, sy)
+  ctx.quadraticCurveTo(sx, sy - 5, sx - 6, sy)
+  ctx.fill()
+  ctx.fillStyle = highlight
+  ctx.beginPath()
+  ctx.moveTo(sx - 5, sy - 1)
+  ctx.quadraticCurveTo(sx, sy - 7, sx + 5, sy - 1)
+  ctx.quadraticCurveTo(sx, sy - 4, sx - 5, sy - 1)
+  ctx.fill()
+  ctx.fillStyle = highlight
+  ctx.beginPath()
+  ctx.moveTo(sx - 3, sy - 8)
+  ctx.quadraticCurveTo(sx, sy - 10, sx + 3, sy - 8)
+  ctx.quadraticCurveTo(sx, sy - 9, sx - 3, sy - 8)
+  ctx.fill()
+}
+
+function drawEyeGlow(ctx: CanvasRenderingContext2D, sx: number, sy: number, color: string, size: number, blink: number) {
+  ctx.fillStyle = '#f8fafc'
+  ctx.beginPath()
+  ctx.ellipse(sx, sy, 3 * size * blink, 3 * size, 0, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.shadowColor = color
+  ctx.shadowBlur = 6 * size
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.ellipse(sx, sy, 1.5 * size, 2 * size, 0, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.shadowBlur = 0
+}
+
 export function drawEntitySprite(
   ctx: CanvasRenderingContext2D,
   type: string,
@@ -260,18 +451,13 @@ export function drawEntitySprite(
 ) {
   ctx.save()
   ctx.translate(x, y)
-  ctx.shadowColor = 'rgba(0,0,0,0.3)'
-  ctx.shadowBlur = 4
 
   const t = time / 1000
   const bobOffset = bob !== 0 ? Math.sin(t * 3 + x) * bob : 0
   const walkPhase = Math.sin(t * 6)
   const walkCycle = walkPhase * 1.5
   const blinkCycle = Math.sin(t * 4.7) > 0.95 ? 0 : 1
-  const idleBob = Math.sin(t * 2.3) * 0.5
 
-  ctx.shadowBlur = 0
-  ctx.shadowColor = 'transparent'
   ctx.fillStyle = 'rgba(0,0,0,0.25)'
   ctx.beginPath()
   ctx.ellipse(0, 15, 13, 5, 0, 0, Math.PI * 2)
@@ -279,214 +465,22 @@ export function drawEntitySprite(
 
   ctx.translate(0, bobOffset)
 
-  function drawEye(sx: number, sy: number, open: number, color = '#1e293b') {
-    ctx.shadowBlur = 0
-    ctx.fillStyle = '#f8fafc'
-    ctx.beginPath()
-    ctx.ellipse(sx, sy, 3.5 * open, 3.5, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.fillStyle = color
-    ctx.beginPath()
-    ctx.ellipse(sx, sy, 2, 2.5, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.fillStyle = '#0f172a'
-    ctx.beginPath()
-    ctx.ellipse(sx, sy, 1, 1.5, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.fillStyle = '#f8fafc'
-    ctx.beginPath()
-    ctx.ellipse(sx + 0.8, sy - 0.8, 0.8, 0.8, 0, 0, Math.PI * 2)
-    ctx.fill()
-  }
-
-  function drawBrow(sx: number, sy: number, angle: number) {
-    ctx.strokeStyle = '#1e293b'
-    ctx.lineWidth = 1.5
-    ctx.beginPath()
-    ctx.moveTo(sx - 3, sy + angle * 1.5)
-    ctx.lineTo(sx + 3, sy - angle * 1.5)
-    ctx.stroke()
-  }
-
-  function drawMouth(sx: number, sy: number, w: number) {
-    ctx.strokeStyle = '#4a2c1a'
-    ctx.lineWidth = 1.2
-    ctx.beginPath()
-    ctx.arc(sx, sy + 1, w, 0.1, Math.PI - 0.1)
-    ctx.stroke()
-  }
-
-  function drawNose(sx: number, sy: number) {
-    ctx.fillStyle = '#e8b87a'
-    ctx.beginPath()
-    ctx.ellipse(sx, sy, 1.2, 1.8, 0, 0, Math.PI * 2)
-    ctx.fill()
-  }
-
-  function drawEar(sx: number, sy: number, skin: string) {
-    ctx.fillStyle = skin
-    ctx.beginPath()
-    ctx.ellipse(sx, sy, 2, 3.5, 0, 0, Math.PI * 2)
-    ctx.fill()
-  }
-
-  function drawCape(sx: number, sy: number, w: number, h: number, color: string, wave: number) {
-    ctx.fillStyle = color
-    ctx.beginPath()
-    ctx.moveTo(sx - w / 2, sy)
-    for (let i = 0; i <= 8; i++) {
-      const px = sx - w / 2 + (w * i) / 8
-      const wx = Math.sin(t * 2.5 + i * 0.8 + x * 0.01) * wave
-      const py2 = sy + (h * i) / 8 + wx
-      ctx.lineTo(px, py2)
-    }
-    for (let i = 8; i >= 0; i--) {
-      const px = sx - w / 2 + (w * i) / 8
-      const wx = Math.sin(t * 2.5 + i * 0.8 + x * 0.01) * wave
-      const py2 = sy + (h * i) / 8 + wx + h * 0.3
-      ctx.lineTo(px, py2)
-    }
-    ctx.closePath()
-    ctx.fill()
-  }
-
-  function drawBeard(sx: number, sy: number, w: number, h: number, color: string) {
-    ctx.fillStyle = color
-    ctx.beginPath()
-    ctx.moveTo(sx - w / 2, sy)
-    for (let i = 0; i <= 6; i++) {
-      const px = sx - w / 2 + (w * i) / 6
-      const py = sy + h * 0.3 + Math.sin(i * 0.8) * h * 0.2
-      ctx.lineTo(px, py)
-    }
-    ctx.lineTo(sx, sy + h)
-    ctx.closePath()
-    ctx.fill()
-  }
-
-  function drawRobeGlow(sx: number, sy: number, w: number, h: number, glow: number) {
-    ctx.globalAlpha = glow
-    ctx.fillStyle = '#60a5fa'
-    ctx.beginPath()
-    ctx.ellipse(sx, sy + h * 0.5, w * 0.4, h * 0.3, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.fillStyle = '#93c5fd'
-    ctx.beginPath()
-    ctx.ellipse(sx - w * 0.15, sy + h * 0.4, w * 0.15, h * 0.15, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.fillStyle = '#bfdbfe'
-    ctx.beginPath()
-    ctx.ellipse(sx + w * 0.15, sy + h * 0.6, w * 0.1, h * 0.1, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.globalAlpha = 1
-  }
-
-  function drawBoot(sx: number, sy: number, w: number, h: number, color: string) {
-    ctx.fillStyle = color
-    ctx.beginPath()
-    ctx.moveTo(sx, sy)
-    ctx.lineTo(sx + w, sy)
-    ctx.lineTo(sx + w + 1, sy + h)
-    ctx.lineTo(sx - 1, sy + h)
-    ctx.closePath()
-    ctx.fill()
-  }
-
-  function drawGoblinEar(sx: number, sy: number, flip: number) {
-    ctx.fillStyle = '#16a34a'
-    ctx.beginPath()
-    ctx.moveTo(sx, sy)
-    ctx.lineTo(sx + flip * 5, sy - 3)
-    ctx.lineTo(sx + flip * 4, sy + 3)
-    ctx.closePath()
-    ctx.fill()
-  }
-
-  function drawSpike(sx: number, sy: number, h: number, flip: number) {
-    ctx.fillStyle = '#dc2626'
-    ctx.beginPath()
-    ctx.moveTo(sx, sy)
-    ctx.lineTo(sx + flip * 3, sy - h)
-    ctx.lineTo(sx + flip * 5, sy)
-    ctx.closePath()
-    ctx.fill()
-  }
-
-  function drawLegs(sx: number, sy: number, w: number, h: number, color: string, wc: number) {
-    ctx.fillStyle = color
-    ctx.beginPath()
-    ctx.moveTo(sx - w / 2, sy + wc * -1)
-    ctx.quadraticCurveTo(sx - w / 2, sy + h + wc * -1, sx + w / 2, sy + h + wc * -1)
-    ctx.quadraticCurveTo(sx + w / 2, sy + wc * -1, sx - w / 2, sy + wc * -1)
-    ctx.fill()
-    ctx.beginPath()
-    ctx.moveTo(sx + w + 2, sy + wc)
-    ctx.quadraticCurveTo(sx + w + 2, sy + h + wc, sx + w + w / 2 + 2, sy + h + wc)
-    ctx.quadraticCurveTo(sx + w + w / 2 + 2, sy + wc, sx + w + 2, sy + wc)
-    ctx.fill()
-  }
-
-  function drawArm(sx: number, sy: number, len: number, angle: number, color: string, w: number = 3) {
-    ctx.strokeStyle = color
-    ctx.lineWidth = w
-    ctx.lineCap = 'round'
-    ctx.beginPath()
-    ctx.moveTo(sx, sy)
-    ctx.quadraticCurveTo(sx + Math.cos(angle) * len * 0.5, sy + Math.sin(angle) * len * 0.5 - 2, sx + Math.cos(angle) * len, sy + Math.sin(angle) * len)
-    ctx.stroke()
-  }
-
-  function drawBodyTorso(sx: number, sy: number, w: number, h: number, color: string) {
-    ctx.fillStyle = color
-    ctx.beginPath()
-    ctx.moveTo(sx - w / 2, sy)
-    ctx.quadraticCurveTo(sx - w / 2 - 2, sy + h * 0.3, sx - w / 2 + 1, sy + h * 0.6)
-    ctx.quadraticCurveTo(sx, sy + h, sx + w / 2 - 1, sy + h * 0.6)
-    ctx.quadraticCurveTo(sx + w / 2 + 2, sy + h * 0.3, sx + w / 2, sy)
-    ctx.closePath()
-    ctx.fill()
-  }
-
-  function drawHatCone(sx: number, sy: number, w: number, h: number, color: string) {
-    ctx.fillStyle = color
-    ctx.beginPath()
-    ctx.moveTo(sx - w / 2, sy)
-    ctx.quadraticCurveTo(sx - w / 4, sy - h * 0.7, sx, sy - h)
-    ctx.quadraticCurveTo(sx + w / 4, sy - h * 0.7, sx + w / 2, sy)
-    ctx.closePath()
-    ctx.fill()
-  }
-
   if (type === 'player') {
     const wc = walkCycle
-    const capeWave = Math.sin(t * 2.5 + x * 0.01) * 2.5
     const blink = blinkCycle
+    const capeWave = 2.5
 
     ctx.shadowColor = 'rgba(91,33,182,0.3)'
     ctx.shadowBlur = 6
-    drawCape(0, -3, 24, 16, '#5b21b6', capeWave)
+    drawCape(ctx, 0, -3, 24, 16, '#5b21b6', capeWave, t + x * 0.01)
     ctx.shadowBlur = 0
 
     ctx.shadowColor = 'rgba(0,0,0,0.2)'
     ctx.shadowBlur = 3
 
-    const legColor = '#1e0a3c'
-    ctx.fillStyle = legColor
-    ctx.beginPath()
-    ctx.moveTo(-7, 8 + wc * -1)
-    ctx.quadraticCurveTo(-6, 15 + wc * -1, -3, 15 + wc * -1)
-    ctx.quadraticCurveTo(0, 15 + wc * -1, 1, 8 + wc * -1)
-    ctx.closePath()
-    ctx.fill()
-    ctx.beginPath()
-    ctx.moveTo(5, 8 + wc)
-    ctx.quadraticCurveTo(6, 15 + wc, 9, 15 + wc)
-    ctx.quadraticCurveTo(12, 15 + wc, 13, 8 + wc)
-    ctx.closePath()
-    ctx.fill()
-
-    drawBoot(-10, 12 + wc * -1, 8, 4, '#1e0a3c')
-    drawBoot(2, 12 + wc, 8, 4, '#1e0a3c')
+    drawLegs(ctx, 0, 5, 6, 8, '#1e0a3c', wc)
+    drawBoot(ctx, -10, 12 + wc * -1, 8, 4, '#1e0a3c')
+    drawBoot(ctx, 2, 12 + wc, 8, 4, '#1e0a3c')
 
     const skirtGrad = ctx.createLinearGradient(0, 7, 0, 14)
     skirtGrad.addColorStop(0, '#6d28d9')
@@ -530,18 +524,9 @@ export function drawEntitySprite(
     ctx.quadraticCurveTo(-4, 7, -5, 6)
     ctx.fill()
 
-    const armColor = '#a855f7'
-    ctx.strokeStyle = armColor
-    ctx.lineWidth = 3
-    ctx.lineCap = 'round'
-    ctx.beginPath()
-    ctx.moveTo(-9, -1)
-    ctx.quadraticCurveTo(-13, 2, -12, 7)
-    ctx.stroke()
-    ctx.beginPath()
-    ctx.moveTo(9, -1)
-    ctx.quadraticCurveTo(13, 2, 12, 7)
-    ctx.stroke()
+    drawArm(ctx, -9, -1, 6, -0.2, '#a855f7')
+    drawArm(ctx, 9, -1, 6, 0.2, '#a855f7')
+
     ctx.fillStyle = '#f8fafc'
     ctx.beginPath()
     ctx.ellipse(-10, 2, 1.5, 2, 0, 0, Math.PI * 2)
@@ -585,15 +570,15 @@ export function drawEntitySprite(
     ctx.quadraticCurveTo(-5, -16, -7, -12)
     ctx.fill()
 
-    drawEar(-8, -11, '#fde68a')
-    drawEar(8, -11, '#fde68a')
+    drawEar(ctx, -8, -11, '#fde68a')
+    drawEar(ctx, 8, -11, '#fde68a')
 
-    drawEye(-3.5, -13, blink)
-    drawEye(3.5, -13, blink)
-    drawBrow(-3.5, -15.5, -0.5)
-    drawBrow(3.5, -15.5, 0.5)
-    drawNose(0, -11)
-    drawMouth(0, -8.5, 2.5)
+    drawEye(ctx, -3.5, -13, blink)
+    drawEye(ctx, 3.5, -13, blink)
+    drawBrow(ctx, -3.5, -15.5, -0.5)
+    drawBrow(ctx, 3.5, -15.5, 0.5)
+    drawNose(ctx, 0, -11)
+    drawMouth(ctx, 0, -8.5, 2.5)
 
     ctx.fillStyle = '#c084fc'
     ctx.beginPath()
@@ -706,10 +691,9 @@ export function drawEntitySprite(
     ctx.shadowColor = 'rgba(0,0,0,0.2)'
     ctx.shadowBlur = 3
 
-    drawLegs(0, 5, 6, 8, c.pants, wc)
-
-    drawBoot(-9, 12 + wc * -1, 8, 3, c.shoes)
-    drawBoot(0, 12 + wc, 8, 3, c.shoes)
+    drawLegs(ctx, 0, 5, 6, 8, c.pants, wc)
+    drawBoot(ctx, -9, 12 + wc * -1, 8, 3, c.shoes)
+    drawBoot(ctx, 0, 12 + wc, 8, 3, c.shoes)
 
     const torsoGrad = ctx.createLinearGradient(-8, -2, 8, 7)
     torsoGrad.addColorStop(0, c.torso)
@@ -750,37 +734,22 @@ export function drawEntitySprite(
     ctx.ellipse(0, -10, 6.5, 7.5, 0, 0, Math.PI * 2)
     ctx.fill()
 
-    drawEye(-3, -11, blink)
-    drawEye(3, -11, blink)
-    drawBrow(-3, -13.5, -0.3)
-    drawBrow(3, -13.5, 0.3)
-    drawNose(0, -9)
-    drawMouth(0, -7, 2)
+    drawEye(ctx, -3, -11, blink)
+    drawEye(ctx, 3, -11, blink)
+    drawBrow(ctx, -3, -13.5, -0.3)
+    drawBrow(ctx, 3, -13.5, 0.3)
+    drawNose(ctx, 0, -9)
+    drawMouth(ctx, 0, -7, 2)
 
     if (name === 'Elder' && c.beard) {
-      drawBeard(0, -6, 8, 7, c.beard)
+      drawBeard(ctx, 0, -6, 8, 7, c.beard)
     }
     if (name === 'Merchant') {
-      drawBeard(0, -6, 5, 3, '#8B6914')
+      drawBeard(ctx, 0, -6, 5, 3, '#8B6914')
     }
+
     if (name === 'Guard') {
-      ctx.fillStyle = '#475569'
-      ctx.beginPath()
-      ctx.moveTo(-6, -18)
-      ctx.quadraticCurveTo(0, -19, 6, -18)
-      ctx.quadraticCurveTo(0, -17, -6, -18)
-      ctx.fill()
-      ctx.beginPath()
-      ctx.moveTo(-5, -19)
-      ctx.quadraticCurveTo(0, -20, 5, -19)
-      ctx.quadraticCurveTo(0, -18, -5, -19)
-      ctx.fill()
-      ctx.fillStyle = '#475569'
-      ctx.beginPath()
-      ctx.moveTo(-8, -16)
-      ctx.quadraticCurveTo(0, -15, 8, -16)
-      ctx.quadraticCurveTo(0, -17, -8, -16)
-      ctx.fill()
+      drawHelmet(ctx, 0, -18, '#475569', '#94a3b8')
       ctx.fillStyle = '#ef4444'
       ctx.beginPath()
       ctx.moveTo(-1, -21)
@@ -795,7 +764,7 @@ export function drawEntitySprite(
       ctx.ellipse(6, -15.5, 2, 0.6, 0, 0, Math.PI * 2)
       ctx.fill()
     } else if (name === 'Merchant') {
-      drawHatCone(0, -12, 16, 8, c.hat2)
+      drawHatCone(ctx, 0, -12, 16, 8, c.hat2)
       ctx.fillStyle = c.hat
       ctx.beginPath()
       ctx.ellipse(0, -9, 9, 2, 0, 0, Math.PI * 2)
@@ -985,7 +954,6 @@ export function drawEntitySprite(
 
     ctx.translate(0, -(s - 1) * 8)
 
-    ctx.shadowBlur = 0
     ctx.fillStyle = 'rgba(0,0,0,0.2)'
     ctx.beginPath()
     ctx.ellipse(0, 15 * s, 12 * s, 4 * s, 0, 0, Math.PI * 2)
@@ -997,11 +965,10 @@ export function drawEntitySprite(
       ctx.shadowColor = 'rgba(0,0,0,0.2)'
       ctx.shadowBlur = 3
 
-      drawLegs(0, 4 * s, 6 * s, 8 * s, '#6B4914', wc * -1)
-      drawLegs(2 * s, 4 * s, 6 * s, 8 * s, '#6B4914', wc)
-
-      drawBoot(-9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s, '#78350f')
-      drawBoot(0, 10 * s + wc + by, 8 * s, 3 * s, '#78350f')
+      drawLegs(ctx, 0, 4 * s, 6 * s, 8 * s, '#6B4914', wc * -1)
+      drawLegs(ctx, 2 * s, 4 * s, 6 * s, 8 * s, '#6B4914', wc)
+      drawBoot(ctx, -9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s, '#78350f')
+      drawBoot(ctx, 0, 10 * s + wc + by, 8 * s, 3 * s, '#78350f')
 
       const torsoGrad = ctx.createLinearGradient(-9 * s, -2 * s, 9 * s, 6 * s)
       torsoGrad.addColorStop(0, '#6B4914')
@@ -1076,11 +1043,10 @@ export function drawEntitySprite(
       ctx.shadowColor = 'rgba(0,0,0,0.2)'
       ctx.shadowBlur = 3
 
-      drawLegs(0, 4 * s, 6 * s, 8 * s, '#cbd5e1', wc * -1)
-      drawLegs(2 * s, 4 * s, 6 * s, 8 * s, '#cbd5e1', wc)
-
-      drawBoot(-9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s, '#94a3b8')
-      drawBoot(0, 10 * s + wc + by, 8 * s, 3 * s, '#94a3b8')
+      drawLegs(ctx, 0, 4 * s, 6 * s, 8 * s, '#cbd5e1', wc * -1)
+      drawLegs(ctx, 2 * s, 4 * s, 6 * s, 8 * s, '#cbd5e1', wc)
+      drawBoot(ctx, -9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s, '#94a3b8')
+      drawBoot(ctx, 0, 10 * s + wc + by, 8 * s, 3 * s, '#94a3b8')
 
       ctx.fillStyle = '#e2e8f0'
       ctx.beginPath()
@@ -1173,11 +1139,10 @@ export function drawEntitySprite(
       ctx.shadowColor = 'rgba(0,0,0,0.2)'
       ctx.shadowBlur = 3
 
-      drawLegs(0, 4 * s, 6 * s, 8 * s, '#1d4ed8', wc * -1)
-      drawLegs(2 * s, 4 * s, 6 * s, 8 * s, '#1d4ed8', wc)
-
-      drawBoot(-9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s, '#0f3a8a')
-      drawBoot(0, 10 * s + wc + by, 8 * s, 3 * s, '#0f3a8a')
+      drawLegs(ctx, 0, 4 * s, 6 * s, 8 * s, '#1d4ed8', wc * -1)
+      drawLegs(ctx, 2 * s, 4 * s, 6 * s, 8 * s, '#1d4ed8', wc)
+      drawBoot(ctx, -9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s, '#0f3a8a')
+      drawBoot(ctx, 0, 10 * s + wc + by, 8 * s, 3 * s, '#0f3a8a')
 
       const robeGrad = ctx.createLinearGradient(-9 * s, -3 * s, 9 * s, 6 * s)
       robeGrad.addColorStop(0, '#2563eb')
@@ -1202,19 +1167,19 @@ export function drawEntitySprite(
       ctx.quadraticCurveTo(0, 3 * s, -7 * s, 1 * s)
       ctx.fill()
 
-      drawRobeGlow(0, 2 * s, 14 * s, 4 * s, 0.25 + Math.sin(t * 3) * 0.15)
+      drawRobeGlow(ctx, 0, 2 * s, 14 * s, 4 * s, 0.25 + Math.sin(t * 3) * 0.15)
 
       ctx.fillStyle = '#f8fafc'
       ctx.beginPath()
       ctx.ellipse(0, -10 * s + by, 6 * s, 7 * s, 0, 0, Math.PI * 2)
       ctx.fill()
 
-      drawEye(-2.5 * s, -11 * s + by, blink, '#3b82f6')
-      drawEye(2.5 * s, -11 * s + by, blink, '#3b82f6')
-      drawBrow(-2.5 * s, -13.5 * s + by, -0.5 * s)
-      drawBrow(2.5 * s, -13.5 * s + by, 0.5 * s)
-      drawNose(0, -9 * s + by)
-      drawMouth(0, -7 * s + by, 1.5 * s)
+      drawEye(ctx, -2.5 * s, -11 * s + by, blink, '#3b82f6')
+      drawEye(ctx, 2.5 * s, -11 * s + by, blink, '#3b82f6')
+      drawBrow(ctx, -2.5 * s, -13.5 * s + by, -0.5 * s)
+      drawBrow(ctx, 2.5 * s, -13.5 * s + by, 0.5 * s)
+      drawNose(ctx, 0, -9 * s + by)
+      drawMouth(ctx, 0, -7 * s + by, 1.5 * s)
 
       const hatGrad = ctx.createLinearGradient(-7 * s, -16 * s, 7 * s, -10 * s)
       hatGrad.addColorStop(0, '#1e40af')
@@ -1277,11 +1242,10 @@ export function drawEntitySprite(
       ctx.shadowColor = 'rgba(0,0,0,0.2)'
       ctx.shadowBlur = 3
 
-      drawLegs(0, 4 * s, 6 * s, 8 * s, '#16a34a', wc * -1)
-      drawLegs(2 * s, 4 * s, 6 * s, 8 * s, '#16a34a', wc)
-
-      drawBoot(-9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s, '#14532d')
-      drawBoot(0, 10 * s + wc + by, 8 * s, 3 * s, '#14532d')
+      drawLegs(ctx, 0, 4 * s, 6 * s, 8 * s, '#16a34a', wc * -1)
+      drawLegs(ctx, 2 * s, 4 * s, 6 * s, 8 * s, '#16a34a', wc)
+      drawBoot(ctx, -9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s, '#14532d')
+      drawBoot(ctx, 0, 10 * s + wc + by, 8 * s, 3 * s, '#14532d')
 
       const gobTorso = ctx.createLinearGradient(-8 * s, -2 * s, 8 * s, 6 * s)
       gobTorso.addColorStop(0, '#16a34a')
@@ -1312,8 +1276,8 @@ export function drawEntitySprite(
       ctx.ellipse(0, -10 * s + by, 6 * s, 6.5 * s, 0, 0, Math.PI * 2)
       ctx.fill()
 
-      drawGoblinEar(-6 * s, -10 * s + by, -1)
-      drawGoblinEar(6 * s, -10 * s + by, 1)
+      drawGoblinEar(ctx, -6 * s, -10 * s + by, -1)
+      drawGoblinEar(ctx, 6 * s, -10 * s + by, 1)
 
       ctx.fillStyle = '#fef08a'
       ctx.beginPath()
@@ -1385,11 +1349,10 @@ export function drawEntitySprite(
       ctx.shadowColor = 'rgba(0,0,0,0.3)'
       ctx.shadowBlur = 5
 
-      drawLegs(0, 4 * s, 8 * s, 10 * s, '#7f1d1d', wc * -1)
-      drawLegs(2 * s, 4 * s, 8 * s, 10 * s, '#7f1d1d', wc)
-
-      drawBoot(-11 * s, 12 * s + wc * -1 + by, 10 * s, 5 * s, '#450a0a')
-      drawBoot(0, 12 * s + wc + by, 10 * s, 5 * s, '#450a0a')
+      drawLegs(ctx, 0, 4 * s, 8 * s, 10 * s, '#7f1d1d', wc * -1)
+      drawLegs(ctx, 2 * s, 4 * s, 8 * s, 10 * s, '#7f1d1d', wc)
+      drawBoot(ctx, -11 * s, 12 * s + wc * -1 + by, 10 * s, 5 * s, '#450a0a')
+      drawBoot(ctx, 0, 12 * s + wc + by, 10 * s, 5 * s, '#450a0a')
 
       const bossTorso = ctx.createLinearGradient(-11 * s, -4 * s, 11 * s, 7 * s)
       bossTorso.addColorStop(0, '#dc2626')
@@ -1423,10 +1386,10 @@ export function drawEntitySprite(
       ctx.fill()
 
       for (let side = -1; side <= 1; side += 2) {
-        drawSpike(5 * s * side, -4 * s, 4 * s, side)
-        drawSpike(8 * s * side, -2 * s, 3 * s, side)
-        drawSpike(-10 * s * side, 1 * s, 3 * s, side)
-        drawSpike(-8 * s * side, 3 * s, 3.5 * s, side)
+        drawSpike(ctx, 5 * s * side, -4 * s, 4 * s, side)
+        drawSpike(ctx, 8 * s * side, -2 * s, 3 * s, side)
+        drawSpike(ctx, -10 * s * side, 1 * s, 3 * s, side)
+        drawSpike(ctx, -8 * s * side, 3 * s, 3.5 * s, side)
       }
 
       const bossSkin = ctx.createRadialGradient(0, -14 * s, 0, 0, -12 * s, 9 * s)
@@ -1473,8 +1436,8 @@ export function drawEntitySprite(
       ctx.fill()
 
       ctx.fillStyle = '#1e293b'
-      drawBrow(-3.5 * s, -16 * s + by, -1 * s)
-      drawBrow(3.5 * s, -16 * s + by, 1 * s)
+      drawBrow(ctx, -3.5 * s, -16 * s + by, -1 * s)
+      drawBrow(ctx, 3.5 * s, -16 * s + by, 1 * s)
 
       ctx.fillStyle = '#b91c1c'
       ctx.beginPath()
@@ -1573,13 +1536,11 @@ export function drawEntitySprite(
       ctx.shadowColor = 'rgba(0,0,0,0.2)'
       ctx.shadowBlur = 3
 
-      drawLegs(0, 4 * s, 6 * s, 8 * s, e.torso, wc * -1)
-      drawLegs(2 * s, 4 * s, 6 * s, 8 * s, e.torso, wc)
-
-      drawBoot(-9 * s, 10 * s + wc * -1, 8 * s, 3 * s, '#2d1b0e')
-      drawBoot(0, 10 * s + wc, 8 * s, 3 * s, '#2d1b0e')
-
-      drawBodyTorso(0, -3 * s, 18 * s, 9 * s, e.torso)
+      drawLegs(ctx, 0, 4 * s, 6 * s, 8 * s, e.torso, wc * -1)
+      drawLegs(ctx, 2 * s, 4 * s, 6 * s, 8 * s, e.torso, wc)
+      drawBoot(ctx, -9 * s, 10 * s + wc * -1, 8 * s, 3 * s, '#2d1b0e')
+      drawBoot(ctx, 0, 10 * s + wc, 8 * s, 3 * s, '#2d1b0e')
+      drawBodyTorso(ctx, 0, -3 * s, 18 * s, 9 * s, e.torso)
 
       ctx.shadowBlur = 0
 
@@ -1588,12 +1549,12 @@ export function drawEntitySprite(
       ctx.ellipse(0, -10 * s, 6 * s, 7 * s, 0, 0, Math.PI * 2)
       ctx.fill()
 
-      drawEye(-2.5 * s, -11 * s, blink, '#1e293b')
-      drawEye(2.5 * s, -11 * s, blink, '#1e293b')
-      drawBrow(-2.5 * s, -13.5 * s, -0.3 * s)
-      drawBrow(2.5 * s, -13.5 * s, 0.3 * s)
-      drawNose(0, -9 * s)
-      drawMouth(0, -7 * s, 1.5 * s)
+      drawEye(ctx, -2.5 * s, -11 * s, blink, '#1e293b')
+      drawEye(ctx, 2.5 * s, -11 * s, blink, '#1e293b')
+      drawBrow(ctx, -2.5 * s, -13.5 * s, -0.3 * s)
+      drawBrow(ctx, 2.5 * s, -13.5 * s, 0.3 * s)
+      drawNose(ctx, 0, -9 * s)
+      drawMouth(ctx, 0, -7 * s, 1.5 * s)
 
       ctx.fillStyle = '#450a0a'
       ctx.beginPath()
@@ -1611,58 +1572,78 @@ export function drawBackground(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
-  cameraX: number,
-  cameraY: number,
-  time: number
+  time: number,
+  weather: string = 'clear'
 ) {
   const t = time / 1000
-
   const hour = ((t * 0.02) % 24)
-  let skyTop: string, skyBottom: string
-  if (hour > 6 && hour < 18) {
-    skyTop = '#1e3a8a'
-    skyBottom = '#60a5fa'
+  const overcast = weather === 'rain' || weather === 'storm' || weather === 'snow'
+
+  let skyTop: string, skyBottom: string, sunColor: string, horizonColor: string
+  if (hour > 5 && hour < 7.5) {
+    const f = (hour - 5) / 2.5
+    const r1 = Math.round(10 + f * 25), g1 = Math.round(10 + f * 55), b1 = Math.round(40 + f * 85)
+    const r2 = Math.round(60 + f * 40), g2 = Math.round(120 - f * 10), b2 = Math.round(200 - f * 20)
+    skyTop = `rgb(${r1},${g1},${b1})`
+    skyBottom = `rgb(${r2},${g2},${b2})`
+    horizonColor = `rgba(255,200,100,${overcast ? 0.1 : 0.4})`
+    sunColor = overcast ? '#94a3b8' : '#fbbf24'
+  } else if (hour > 7.5 && hour < 18) {
+    const dayFactor = overcast ? 0.6 : 1
+    skyTop = `rgb(${Math.round(30 * dayFactor)},${Math.round(58 * dayFactor)},${Math.round(138 * dayFactor)})`
+    skyBottom = `rgb(${Math.round(96 * dayFactor)},${Math.round(165 * dayFactor)},${Math.round(250 * dayFactor)})`
+    horizonColor = `rgba(255,255,255,${overcast ? 0 : 0.15})`
+    sunColor = overcast ? '#94a3b8' : '#fef3c7'
   } else if (hour >= 18 && hour < 20) {
     const f = (hour - 18) / 2
-    skyTop = `rgb(${(30 + f * 80) | 0},${(58 - f * 20) | 0},${(138 - f * 60) | 0})`
-    skyBottom = `rgb(${(96 + f * 100) | 0},${(165 - f * 30) | 0},${(250 - f * 80) | 0})`
+    skyTop = `rgb(${(30 + f * 60) | 0},${(58 - f * 20) | 0},${(138 - f * 80) | 0})`
+    skyBottom = `rgb(${(96 + f * 80) | 0},${(165 - f * 40) | 0},${(250 - f * 100) | 0})`
+    horizonColor = `rgba(255,150,50,${overcast ? 0.1 : 0.3})`
+    sunColor = overcast ? '#64748b' : '#f59e0b'
   } else {
     skyTop = '#0c0c1e'
     skyBottom = '#1a1a3e'
+    horizonColor = 'rgba(100,100,200,0.05)'
+    sunColor = '#e2e8f0'
   }
 
   const grad = ctx.createLinearGradient(0, 0, 0, h)
   grad.addColorStop(0, skyTop)
-  grad.addColorStop(1, skyBottom)
+  grad.addColorStop(0.6, skyBottom)
+  grad.addColorStop(1, '#0a0a1a')
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, w, h)
 
-  if (hour > 6 && hour < 20) {
+  if (hour > 5 && hour < 20) {
     const sunY = h * 0.15 + Math.sin((hour - 6) / 14 * Math.PI) * h * 0.3
     const sunX = w * ((hour - 6) / 14)
 
-    const sunGlow = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 60)
-    sunGlow.addColorStop(0, 'rgba(255,220,100,0.6)')
-    sunGlow.addColorStop(0.4, 'rgba(255,200,80,0.3)')
-    sunGlow.addColorStop(1, 'rgba(255,200,80,0)')
-    ctx.fillStyle = sunGlow
-    ctx.beginPath()
-    ctx.arc(sunX, sunY, 60, 0, Math.PI * 2)
-    ctx.fill()
+    if (!overcast) {
+      const sunGlow = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 80)
+      sunGlow.addColorStop(0, 'rgba(255,220,100,0.5)')
+      sunGlow.addColorStop(0.4, 'rgba(255,200,80,0.2)')
+      sunGlow.addColorStop(1, 'rgba(255,200,80,0)')
+      ctx.fillStyle = sunGlow
+      ctx.beginPath()
+      ctx.arc(sunX, sunY, 80, 0, Math.PI * 2)
+      ctx.fill()
+    }
 
     const sunGrad = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 20)
-    sunGrad.addColorStop(0, '#fef3c7')
+    sunGrad.addColorStop(0, sunColor)
     sunGrad.addColorStop(0.5, '#fbbf24')
     sunGrad.addColorStop(1, '#f59e0b')
     ctx.fillStyle = sunGrad
     ctx.beginPath()
-    ctx.arc(sunX, sunY, 20, 0, Math.PI * 2)
+    ctx.arc(sunX, sunY, overcast ? 10 : 20, 0, Math.PI * 2)
     ctx.fill()
 
-    ctx.fillStyle = '#fde68a'
-    ctx.beginPath()
-    ctx.arc(sunX - 2, sunY - 2, 12, 0, Math.PI * 2)
-    ctx.fill()
+    if (!overcast) {
+      ctx.fillStyle = '#fde68a'
+      ctx.beginPath()
+      ctx.arc(sunX - 2, sunY - 2, 12, 0, Math.PI * 2)
+      ctx.fill()
+    }
   } else {
     const moonX = w * 0.7, moonY = h * 0.12
 
@@ -1678,39 +1659,55 @@ export function drawBackground(
     ctx.beginPath()
     ctx.arc(moonX, moonY, 16, 0, Math.PI * 2)
     ctx.fill()
-    ctx.fillStyle = '#94a3b8'
+    ctx.fillStyle = '#0c0c1e'
     ctx.beginPath()
     ctx.arc(moonX + 5, moonY - 3, 12, 0, Math.PI * 2)
     ctx.fill()
+
+    if (hour < 5 || hour > 20) {
+      for (let i = 0; i < 80; i++) {
+        const sx = (i * 137.5 + 50) % w
+        const sy = (i * 97.3 + 30) % (h * 0.5)
+        const brightness = 0.3 + Math.sin(t * 0.5 + i * 1.7) * 0.2
+        ctx.fillStyle = `rgba(255,255,255,${brightness})`
+        ctx.beginPath()
+        ctx.arc(sx, sy, 0.5 + Math.sin(i) * 0.5, 0, Math.PI * 2)
+        ctx.fill()
+      }
+    }
   }
 
-  for (let layer = 0; layer < 3; layer++) {
-    const layerSpeed = 0.1 + layer * 0.08
-    const layerAlpha = 0.15 + layer * 0.1
-    const layerScale = 1 + layer * 0.6
-    ctx.fillStyle = `rgba(255,255,255,${layerAlpha})`
+  for (let layer = 0; layer < 5; layer++) {
+    const layerAlpha = overcast ? 0.25 + layer * 0.12 : 0.1 + layer * 0.08
+    const layerScale = 1 + layer * 0.5
+    const color = overcast
+      ? `rgba(120,130,140,${layerAlpha})`
+      : `rgba(255,255,255,${layerAlpha})`
+    ctx.fillStyle = color
     for (let i = 0; i < 4 + layer * 2; i++) {
-      const cx = ((i * 200 + layer * 150 + t * layerSpeed * 30) % (w + 200)) - 100
-      const cy = 30 + layer * 25 + Math.sin(i * 1.5 + t * 0.3 * layerSpeed) * 15
-      const cw = 40 * layerScale + Math.sin(i + t * 0.2) * 10
-      const ch = 12 * layerScale
+      const cx = ((i * 180 + layer * 130 + t * (0.05 + layer * 0.04) * 30) % (w + 200)) - 100
+      const cy = 25 + layer * 20 + Math.sin(i * 1.5 + t * 0.2 * (0.1 + layer * 0.06)) * 12
+      const cw = 35 * layerScale + Math.sin(i + t * 0.15) * 8
+      const ch = 10 * layerScale
       ctx.beginPath()
-      ctx.ellipse(cx + cameraX * layerSpeed * -0.05, cy, cw, ch, 0, 0, Math.PI * 2)
+      ctx.ellipse(cx, cy, cw, ch, 0, 0, Math.PI * 2)
       ctx.fill()
     }
   }
 
-  for (let plane = 0; plane < 2; plane++) {
-    const pFactor = 0.1 + plane * 0.15
-    const offsetX = cameraX * pFactor * 0.1
-    const offsetY = h * 0.5 + plane * 60
-    ctx.fillStyle = plane === 0 ? '#1e293b' : '#334155'
+  const mountainColors = ['#0f172a', '#1e293b', '#334155']
+  for (let plane = 0; plane < 3; plane++) {
+    const pFactor = 0.05 + plane * 0.1
+    const offsetY = h * 0.4 + plane * 40
+    ctx.fillStyle = mountainColors[plane]
     ctx.beginPath()
     ctx.moveTo(0, h)
-    for (let x = 0; x <= w; x += 8) {
-      const height = Math.sin((x + offsetX) * 0.003 + plane * 5) * 60
-        + Math.sin((x + offsetX) * 0.008 + plane * 3) * 30
-        + 80
+    for (let x = 0; x <= w; x += 6) {
+      const height =
+        Math.sin((x) * 0.002 + plane * 7) * 70 +
+        Math.sin((x) * 0.006 + plane * 4) * 35 +
+        Math.sin((x) * 0.015 + plane * 2) * 15 +
+        60
       ctx.lineTo(x, offsetY - height)
     }
     ctx.lineTo(w, h)
@@ -1719,7 +1716,7 @@ export function drawBackground(
   }
 
   for (let i = 0; i < 5; i++) {
-    const tx = ((i * 180 + cameraX * 0.05) % (w + 100)) - 50
+    const tx = ((i * 180) % (w + 100)) - 50
     const ty = h * 0.45 + Math.sin(i * 2.5) * 30
     ctx.fillStyle = '#1a3a2a'
     ctx.beginPath()
@@ -1751,7 +1748,6 @@ export function drawFogOfWar(
   ctx.save()
   ctx.fillStyle = 'rgba(0,0,0,0.95)'
   ctx.fillRect(0, 0, w, h)
-
   ctx.globalCompositeOperation = 'destination-out'
   const grad = ctx.createRadialGradient(px, py, 0, px, py, radius)
   grad.addColorStop(0, 'rgba(0,0,0,1)')
@@ -1761,7 +1757,6 @@ export function drawFogOfWar(
   ctx.beginPath()
   ctx.arc(px, py, radius, 0, Math.PI * 2)
   ctx.fill()
-
   ctx.restore()
 }
 
@@ -1775,9 +1770,7 @@ export function drawLightning(
 ) {
   const t = time / 1000
   const pulse = Math.sin(t * 2) * 0.15 + 0.85
-
   ctx.save()
-
   const innerGrad = ctx.createRadialGradient(x, y, 0, x, y, radius)
   innerGrad.addColorStop(0, color)
   innerGrad.addColorStop(0.3, `${color}80`)
@@ -1788,7 +1781,6 @@ export function drawLightning(
   ctx.beginPath()
   ctx.arc(x, y, radius, 0, Math.PI * 2)
   ctx.fill()
-
   const outerGrad = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.4)
   outerGrad.addColorStop(0, `${color}40`)
   outerGrad.addColorStop(0.5, `${color}15`)
@@ -1798,6 +1790,194 @@ export function drawLightning(
   ctx.beginPath()
   ctx.arc(x, y, radius * 1.4, 0, Math.PI * 2)
   ctx.fill()
+  ctx.restore()
+}
+
+export function drawShadow(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  lightX: number,
+  lightY: number
+) {
+  const dx = x - lightX
+  const dy = y - lightY
+  const dist = Math.sqrt(dx * dx + dy * dy) || 1
+  const sx = (dx / dist) * 4
+  const sy = (dy / dist) * 4
+  const alpha = Math.max(0.1, Math.min(0.4, 1 - dist / 300))
+  ctx.fillStyle = `rgba(0,0,0,${alpha})`
+  ctx.beginPath()
+  ctx.ellipse(x + sx, y + sy + h * 0.3, w * 0.4, h * 0.15, 0, 0, Math.PI * 2)
+  ctx.fill()
+}
+
+export function drawWeather(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  time: number,
+  type: 'clear' | 'rain' | 'snow' | 'storm'
+) {
+  if (type === 'clear') return
+  const t = time / 1000
+  ctx.save()
+
+  if (type === 'rain' || type === 'storm') {
+    const speed = type === 'storm' ? 2.5 : 1.5
+    for (let i = 0; i < 200; i++) {
+      const px = (i * 37.7 + t * 120 * speed + (type === 'storm' ? Math.sin(i) * 30 : 0)) % (w + 20) - 10
+      const py = (i * 53.3 + t * 250 * speed) % (h + 40) - 20
+      const length = 8 + Math.sin(i * 3.7 + t * 2) * 4
+      ctx.strokeStyle = `rgba(150,180,220,${0.2 + Math.sin(i * 5.1 + t * 3) * 0.1})`
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(px, py)
+      ctx.lineTo(px - (type === 'storm' ? 3 : 0.5), py + length)
+      ctx.stroke()
+    }
+  }
+
+  if (type === 'snow') {
+    for (let i = 0; i < 100; i++) {
+      const sway = Math.sin(t * 0.8 + i * 1.3) * 8
+      const px = (i * 41.1 + t * 40 + sway) % (w + 30) - 15
+      const py = (i * 29.7 + t * 80 + Math.sin(i * 2.3) * 5) % (h + 30) - 15
+      const size = 1.5 + Math.sin(i * 4.7 + t) * 0.8
+      ctx.fillStyle = `rgba(220,230,255,${0.4 + Math.sin(i * 3.1 + t * 0.5) * 0.15})`
+      ctx.beginPath()
+      ctx.arc(px, py, size, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  }
+
+  if (type === 'storm') {
+    const flash = Math.sin(t * 1.7) > 0.98 ? 0.3 : 0
+    if (flash > 0) {
+      ctx.fillStyle = `rgba(255,255,255,${flash})`
+      ctx.fillRect(0, 0, w, h)
+    }
+    for (let i = 0; i < 3; i++) {
+      const lx = (i * 200 + 50) % w
+      const ly = (i * 80 + Math.sin(t * 3 + i) * 40) % h
+      const flashAlpha = Math.sin(t * 2.3 + i * 4.1) > 0.97 ? 0.6 : 0
+      if (flashAlpha > 0) {
+        ctx.strokeStyle = `rgba(200,210,255,${flashAlpha})`
+        ctx.lineWidth = 2
+        ctx.beginPath()
+        ctx.moveTo(lx, 0)
+        let cx = lx
+        for (let y = 0; y <= ly; y += 10) {
+          cx += Math.sin(y * 0.3 + t * 5 + i) * 8
+          ctx.lineTo(cx, y)
+        }
+        ctx.stroke()
+      }
+    }
+  }
+
+  ctx.restore()
+}
+
+export function applyPostProcess(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  time: number,
+  effects: { bloom?: number; vignette?: number; damage?: number }
+) {
+  const t = time / 1000
+  ctx.save()
+
+  if (effects.bloom && effects.bloom > 0) {
+    const imageData = ctx.getImageData(0, 0, w, h)
+    const data = imageData.data
+    const blurred = new Uint8ClampedArray(data.length)
+    const radius = Math.max(1, Math.round(effects.bloom * 4))
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        let r = 0, g = 0, b = 0, count = 0
+        for (let dy = -radius; dy <= radius; dy++) {
+          for (let dx = -radius; dx <= radius; dx++) {
+            const nx = x + dx, ny = y + dy
+            if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+              const idx = (ny * w + nx) * 4
+              r += data[idx]
+              g += data[idx + 1]
+              b += data[idx + 2]
+              count++
+            }
+          }
+        }
+        const idx = (y * w + x) * 4
+        blurred[idx] = r / count
+        blurred[idx + 1] = g / count
+        blurred[idx + 2] = b / count
+        blurred[idx + 3] = data[idx + 3]
+      }
+    }
+    const tempCanvas = document.createElement('canvas')
+    tempCanvas.width = w
+    tempCanvas.height = h
+    const tempCtx = tempCanvas.getContext('2d')!
+    const tempImageData = new ImageData(blurred, w, h)
+    tempCtx.putImageData(tempImageData, 0, 0)
+    ctx.globalCompositeOperation = 'screen'
+    ctx.globalAlpha = effects.bloom * 0.4
+    ctx.drawImage(tempCanvas, 0, 0)
+    ctx.globalAlpha = 1
+    ctx.globalCompositeOperation = 'source-over'
+  }
+
+  if (effects.vignette && effects.vignette > 0) {
+    const vigGrad = ctx.createRadialGradient(w / 2, h / 2, w * 0.2, w / 2, h / 2, w * 0.7)
+    vigGrad.addColorStop(0, 'rgba(0,0,0,0)')
+    vigGrad.addColorStop(1, `rgba(0,0,0,${effects.vignette})`)
+    ctx.fillStyle = vigGrad
+    ctx.fillRect(0, 0, w, h)
+  }
+
+  if (effects.damage && effects.damage > 0) {
+    const damageAlpha = Math.sin(t * 6) * 0.2 + 0.3
+    ctx.fillStyle = `rgba(255,0,0,${damageAlpha * effects.damage})`
+    ctx.fillRect(0, 0, w, h)
+  }
+
+  ctx.restore()
+}
+
+export function drawLighting(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  lights: { x: number; y: number; radius: number; color: string; intensity: number }[],
+  ambientLevel: number
+) {
+  ctx.save()
+
+  ctx.fillStyle = `rgba(0,0,0,${1 - ambientLevel})`
+  ctx.fillRect(0, 0, w, h)
+
+  if (lights.length > 0) {
+    ctx.globalCompositeOperation = 'lighter'
+
+    for (const light of lights) {
+      const grad = ctx.createRadialGradient(light.x, light.y, 0, light.x, light.y, light.radius)
+      const alpha = (1 - ambientLevel) * light.intensity
+      grad.addColorStop(0, light.color)
+      grad.addColorStop(0.3, `${light.color}${Math.round(alpha * 180).toString(16).padStart(2, '0')}`)
+      grad.addColorStop(0.7, `${light.color}${Math.round(alpha * 60).toString(16).padStart(2, '0')}`)
+      grad.addColorStop(1, `${light.color}00`)
+      ctx.fillStyle = grad
+      ctx.beginPath()
+      ctx.arc(light.x, light.y, light.radius, 0, Math.PI * 2)
+      ctx.fill()
+    }
+
+    ctx.globalCompositeOperation = 'source-over'
+  }
 
   ctx.restore()
 }

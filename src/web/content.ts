@@ -4,6 +4,8 @@ export enum EnemyType {
   Mage = 'Mage',
   Goblin = 'Goblin',
   Boss = 'Boss',
+  Warlock = 'Warlock',
+  Dragon = 'Dragon',
 }
 
 export enum SpellType {
@@ -11,6 +13,60 @@ export enum SpellType {
   Heal = 'Heal',
   Shield = 'Shield',
 }
+
+export interface PlayerStats {
+  attackDamage: number
+  maxHp: number
+  maxMana: number
+  magicDamage: number
+  damageReduction: number
+  speedMultiplier: number
+  skillPoints: number
+  equipped: Record<string, string | null>
+  skills: Record<string, number>
+}
+
+export interface Skill {
+  id: string
+  name: string
+  description: string
+  maxLevel: number
+  requirements: { skillId: string; level: number }[]
+  effects: { stat: string; perLevel: number }[]
+  icon: string
+}
+
+export const SKILLS: Skill[] = [
+  { id: 'strength', name: 'Fuerza', description: '+2 daño físico por nivel', maxLevel: 10, requirements: [], effects: [{ stat: 'attackDamage', perLevel: 2 }], icon: '⚔' },
+  { id: 'vitality', name: 'Vitalidad', description: '+10 HP por nivel', maxLevel: 10, requirements: [], effects: [{ stat: 'maxHp', perLevel: 10 }], icon: '❤' },
+  { id: 'magic', name: 'Magia', description: '+5 mana y +2 daño mágico por nivel', maxLevel: 10, requirements: [{ skillId: 'vitality', level: 3 }], effects: [{ stat: 'maxMana', perLevel: 5 }, { stat: 'magicDamage', perLevel: 2 }], icon: '✨' },
+  { id: 'defense', name: 'Defensa', description: '-1 daño recibido por nivel', maxLevel: 10, requirements: [{ skillId: 'vitality', level: 2 }], effects: [{ stat: 'damageReduction', perLevel: 1 }], icon: '🛡' },
+  { id: 'swiftness', name: 'Rapidez', description: '+5% velocidad por nivel', maxLevel: 5, requirements: [{ skillId: 'strength', level: 5 }], effects: [{ stat: 'speedMultiplier', perLevel: 0.05 }], icon: '💨' },
+]
+
+export type SlotType = 'weapon' | 'armor' | 'helmet' | 'accessory'
+
+export interface EquipmentDef {
+  id: string
+  name: string
+  slot: SlotType
+  stats: Partial<PlayerStats>
+  description: string
+  tier: number
+}
+
+export const EQUIPMENT: EquipmentDef[] = [
+  { id: 'iron_sword', name: 'Espada de Hierro', slot: 'weapon', stats: { attackDamage: 5 }, description: 'Espada básica de hierro', tier: 1 },
+  { id: 'steel_sword', name: 'Espada de Acero', slot: 'weapon', stats: { attackDamage: 10 }, description: 'Espada de acero templado', tier: 2 },
+  { id: 'magic_staff', name: 'Báculo Mágico', slot: 'weapon', stats: { magicDamage: 8, maxMana: 20 }, description: 'Báculo imbuido con poder arcano', tier: 2 },
+  { id: 'leather_armor', name: 'Armadura de Cuero', slot: 'armor', stats: { maxHp: 20, damageReduction: 1 }, description: 'Armadura ligera de cuero', tier: 1 },
+  { id: 'chain_mail', name: 'Cota de Malla', slot: 'armor', stats: { maxHp: 40, damageReduction: 2 }, description: 'Protección de anillos de acero', tier: 2 },
+  { id: 'plate_armor', name: 'Armadura de Placas', slot: 'armor', stats: { maxHp: 70, damageReduction: 3 }, description: 'Armadura completa de placas', tier: 3 },
+  { id: 'iron_helm', name: 'Yelmo de Hierro', slot: 'helmet', stats: { maxHp: 10 }, description: 'Protección básica para la cabeza', tier: 1 },
+  { id: 'wizard_hat', name: 'Sombrero de Mago', slot: 'helmet', stats: { maxMana: 30, magicDamage: 3 }, description: 'Sombrero cónico con poderes arcanos', tier: 2 },
+  { id: 'ring_of_power', name: 'Anillo de Poder', slot: 'accessory', stats: { attackDamage: 3, magicDamage: 3 }, description: 'Anillo que potencia todas las habilidades', tier: 3 },
+  { id: 'amulet_of_life', name: 'Amuleto de Vida', slot: 'accessory', stats: { maxHp: 50, damageReduction: 1 }, description: 'Amuleto que aumenta la vitalidad', tier: 2 },
+]
 
 export interface EnemyStats {
   hp: number
@@ -20,6 +76,13 @@ export interface EnemyStats {
   xp: number
   name: string
   color: string
+  type?: string
+  level?: number
+  damage?: number
+  gold?: { min: number; max: number }
+  attackRange?: number
+  attackCooldown?: number
+  spells?: string[]
 }
 
 export interface SpellData {
@@ -122,6 +185,11 @@ const LOOT_TABLES: Record<string, LootTableEntry> = {
     ],
   },
 }
+
+export const MORE_ENEMIES: EnemyStats[] = [
+  { hp: 100, maxHp: 100, dmg: 14, damage: 14, level: 8, type: EnemyType.Warlock, name: 'Brujo', xp: 40, speed: 60, gold: { min: 15, max: 35 }, attackRange: 100, attackCooldown: 1200, color: '#7c3aed', spells: ['shadow_bolt'] },
+  { hp: 250, maxHp: 250, dmg: 25, damage: 25, level: 10, type: EnemyType.Dragon, name: 'Dragón Joven', xp: 80, speed: 40, gold: { min: 40, max: 80 }, attackRange: 80, attackCooldown: 1500, color: '#dc2626', spells: ['fire_breath'] },
+]
 
 const SHOPS: Record<string, ShopItem[]> = {
   merchant: [

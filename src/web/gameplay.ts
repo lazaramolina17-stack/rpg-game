@@ -1,4 +1,4 @@
-import { ContentManager, Quest, ShopItem, SpellData, EnemyStats } from './content.js'
+import { ContentManager, Quest, ShopItem, SpellData, EnemyStats, Skill, EquipmentDef, SlotType, EQUIPMENT, SKILLS } from './content.js'
 
 export interface InventoryItem {
   type: string
@@ -29,6 +29,17 @@ export interface DamageText {
   alpha: number
 }
 
+interface QuestState {
+  quest: Quest
+  current: number
+  completed: boolean
+}
+
+interface CraftRecipe {
+  resultId: string
+  materials: { itemId: string; quantity: number }[]
+}
+
 const INVENTORY_SIZE = 10
 const HP_PER_LEVEL = 10
 const POTION_HEAL = 30
@@ -44,7 +55,7 @@ const QUEST_TRACKING: Record<string, { type: 'kill' | 'gold' | 'talk'; target: n
   Tutorial: { type: 'talk', target: 1 },
 }
 
-const LOOT_ITEM_MAP: Record<string, { itemType: string; value: any }> = {
+const LOOT_ITEM_MAP: Record<string, { itemType: string; value: unknown }> = {
   'potion': { itemType: 'health_potion', value: 30 },
   'mana potion': { itemType: 'mana_potion', value: 20 },
   'weapon': { itemType: 'weapon', value: 'iron_sword' },
@@ -54,11 +65,13 @@ const LOOT_ITEM_MAP: Record<string, { itemType: string; value: any }> = {
   'spell scroll': { itemType: 'scroll', value: 'spell_scroll' },
 }
 
-interface QuestState {
-  quest: Quest
-  current: number
-  completed: boolean
-}
+const CRAFT_RECIPES: CraftRecipe[] = [
+  { resultId: 'iron_sword', materials: [{ itemId: 'weapon', quantity: 2 }] },
+  { resultId: 'leather_armor', materials: [{ itemId: 'potion', quantity: 3 }] },
+  { resultId: 'magic_staff', materials: [{ itemId: 'scroll', quantity: 2 }] },
+  { resultId: 'chain_mail', materials: [{ itemId: 'weapon', quantity: 3 }, { itemId: 'scroll', quantity: 1 }] },
+  { resultId: 'ring_of_power', materials: [{ itemId: 'rare weapon', quantity: 2 }, { itemId: 'spell scroll', quantity: 1 }] },
+]
 
 export class GameplayManager {
   onLevelUp: (() => void) | null = null
@@ -73,11 +86,19 @@ export class GameplayManager {
   private pendingProjectiles: { type: string; x: number; y: number; targetX: number; targetY: number }[] = []
 
   constructor(
-    private player: any,
-    private enemies: any[],
-    private items: any[],
+    private player: Record<string, unknown>,
+    private enemies: Record<string, unknown>[],
+    private items: Record<string, unknown>[],
     private content: ContentManager
   ) {
+    this.player.attackDamage = (this.player.attackDamage as number) ?? 5
+    this.player.magicDamage = (this.player.magicDamage as number) ?? 2
+    this.player.damageReduction = (this.player.damageReduction as number) ?? 0
+    this.player.speedMultiplier = (this.player.speedMultiplier as number) ?? 1
+    this.player.skillPoints = (this.player.skillPoints as number) ?? 0
+    this.player.equipped = (this.player.equipped as Record<string, string | null>) ?? { weapon: null, armor: null, helmet: null, accessory: null }
+    this.player.skills = (this.player.skills as Record<string, number>) ?? {}
+
     const quests = content.getAllQuests()
     this.questStates = quests.map(q => ({
       quest: q,
@@ -86,15 +107,159 @@ export class GameplayManager {
     }))
   }
 
-  update(dt: number, entities: any[]) {
+  learnSkill(skillId: string): boolean {
+    const skill = SKILLS.find(s => s.id === skillId)
+    if (!skill) return false
+    const currentLevel = (this.player.skills as Record<string, number>)[skillId] ?? 0
+    if (currentLevel >= skill.maxLevel) return false
+    for (const req of skill.requirements) {
+      const reqLevel = (this.player.skills as Record<string, number>)[req.skillId] ?? 0
+      if (reqLevel < req.level) return false
+    }
+    const sp = this.player.skillPoints as number
+    if (sp < 1) return false
+    this.player.skillPoints = sp - 1
+    ;(this.player.skills as Record<string, number>)[skillId] = currentLevel + 1
+    this.applySkillEffects(skill)
+    return true
+  }
+
+  getSkillLevel(skillId: string): number {
+    return (this.player.skills as Record<string, number>)[skillId] ?? 0
+  }
+
+  getSkillPoints(): number {
+    return (this.player.skillPoints as number) ?? 0
+  }
+
+  getAvailableSkills(): Skill[] {
+    return SKILLS.filter(s => {
+      const currentLevel = (this.player.skills as Record<string, number>)[s.id] ?? 0
+      if (currentLevel >= s.maxLevel) return false
+      for (const req of s.requirements) {
+        const reqLevel = (this.player.skills as Record<string, number>)[req.skillId] ?? 0
+        if (reqLevel < req.level) return false
+      }
+      return true
+    })
+  }
+
+  private applySkillEffects(skill: Skill): void {
+    const level = (this.player.skills as Record<string, number>)[skill.id] ?? 0
+    for (const effect of skill.effects) {
+      const key = effect.stat as keyof typeof this.player
+      const current = this.player[key] as number ?? 0
+      ;(this.player as Record<string, unknown>)[key] = effect.perLevel * level
+    }
+  }
+
+  equipItem(itemId: string): boolean {
+    const def = EQUIPMENT.find(e => e.id === itemId)
+    if (!def) return false
+    const invIndex = this.inventory.findIndex(s => s && s.type === def.id)
+    if (invIndex < 0) return false
+    const equipped = this.player.equipped as Record<string, string | null>
+    const oldItemId = equipped[def.slot]
+    equipped[def.slot] = itemId
+    this.inventory[invIndex] = null
+    if (oldItemId) {
+      const emptyIdx = this.inventory.findIndex(s => !s)
+      if (emptyIdx >= 0) {
+        const oldDef = EQUIPMENT.find(e => e.id === oldItemId)
+        this.inventory[emptyIdx] = { type: oldItemId, name: oldDef?.name ?? oldItemId, quantity: 1 }
+      }
+    }
+    return true
+  }
+
+  unequipSlot(slot: SlotType): boolean {
+    const equipped = this.player.equipped as Record<string, string | null>
+    const itemId = equipped[slot]
+    if (!itemId) return false
+    const emptyIdx = this.inventory.findIndex(s => !s)
+    if (emptyIdx < 0) return false
+    const def = EQUIPMENT.find(e => e.id === itemId)
+    this.inventory[emptyIdx] = { type: itemId, name: def?.name ?? itemId, quantity: 1 }
+    equipped[slot] = null
+    return true
+  }
+
+  getEquippedStats(): Partial<Record<string, number>> {
+    const totals: Record<string, number> = {}
+    const slots: SlotType[] = ['weapon', 'armor', 'helmet', 'accessory']
+    const equipped = this.player.equipped as Record<string, string | null>
+    for (const slot of slots) {
+      const itemId = equipped[slot]
+      if (!itemId) continue
+      const def = EQUIPMENT.find(e => e.id === itemId)
+      if (!def) continue
+      for (const [key, value] of Object.entries(def.stats)) {
+        totals[key] = (totals[key] ?? 0) + (value as number)
+      }
+    }
+    return totals
+  }
+
+  canCraft(itemId: string): boolean {
+    const recipe = CRAFT_RECIPES.find(r => r.resultId === itemId)
+    if (!recipe) return false
+    for (const mat of recipe.materials) {
+      const count = this.inventory.reduce((sum, slot) => {
+        if (slot && slot.type === mat.itemId) return sum + slot.quantity
+        return sum
+      }, 0)
+      if (count < mat.quantity) return false
+    }
+    return true
+  }
+
+  craftItem(itemId: string): boolean {
+    if (!this.canCraft(itemId)) return false
+    const recipe = CRAFT_RECIPES.find(r => r.resultId === itemId)!
+    for (const mat of recipe.materials) {
+      let remaining = mat.quantity
+      for (let i = 0; i < this.inventory.length && remaining > 0; i++) {
+        const slot = this.inventory[i]
+        if (slot && slot.type === mat.itemId) {
+          const taken = Math.min(slot.quantity, remaining)
+          slot.quantity -= taken
+          remaining -= taken
+          if (slot.quantity <= 0) this.inventory[i] = null
+        }
+      }
+    }
+    const def = EQUIPMENT.find(e => e.id === itemId)
+    this.addToInventory(itemId, def?.name ?? itemId, 1)
+    return true
+  }
+
+  calculateDamage(enemy?: Record<string, unknown>): number {
+    const baseAtk = (this.player.attackDamage as number) ?? 5
+    const strBonus = ((this.player.skills as Record<string, number>)?.strength ?? 0) * 2
+    const equipStats = this.getEquippedStats()
+    const equipAtk = equipStats.attackDamage ?? 0
+    const levelBonus = this.level
+    const totalAtk = baseAtk + strBonus + equipAtk + levelBonus + Math.floor(Math.random() * 5)
+    let enemyDef = 0
+    if (enemy) {
+      const enemyType = enemy.enemyType as string | undefined
+      if (enemyType) {
+        const stats = this.content.getEnemyStats(enemyType)
+        enemyDef = stats.damageReduction ?? 0
+      }
+    }
+    return Math.max(1, totalAtk - enemyDef)
+  }
+
+  update(dt: number, entities: Record<string, unknown>[]) {
     for (let i = this.damageTexts.length - 1; i >= 0; i--) {
       const d = this.damageTexts[i]
       d.y -= DAMAGE_TEXT_SPEED * dt * 60
-      const lifeProperty = (d as any).life
+      const lifeProperty = (d as Record<string, unknown>).life
       if (lifeProperty !== undefined) {
-        (d as any).life -= dt
-        d.alpha = Math.max(0, (d as any).life / DAMAGE_TEXT_LIFE)
-        if ((d as any).life <= 0) this.damageTexts.splice(i, 1)
+        (d as Record<string, unknown>).life = (lifeProperty as number) - dt
+        d.alpha = Math.max(0, (lifeProperty as number) / DAMAGE_TEXT_LIFE)
+        if ((lifeProperty as number) <= 0) this.damageTexts.splice(i, 1)
       }
     }
   }
@@ -107,19 +272,36 @@ export class GameplayManager {
       alpha: 1,
       vy: DAMAGE_TEXT_SPEED,
       life: DAMAGE_TEXT_LIFE,
-    } as any)
+    } as DamageText & { vy: number; life: number })
   }
 
-  onEnemyKilled(enemy: any) {
-    const enemyType = enemy.enemyType || 'Unknown'
+  onEnemyKilled(enemy: Record<string, unknown>) {
+    const enemyType = (enemy.enemyType as string) || 'Unknown'
     const stats = this.content.getEnemyStats(enemyType)
     this.addXp(stats.xp)
-    this.addDamageText(`+${stats.xp} XP`, enemy.x, enemy.y - 40)
+    this.addDamageText(`+${stats.xp} XP`, enemy.x as number, (enemy.y as number) - 40)
 
-    const lootEntities = this.content.generateLoot(enemyType, enemy.x, enemy.y)
+    const lootEntities = this.content.generateLoot(enemyType, enemy.x as number, enemy.y as number)
     for (const le of lootEntities) {
       const item = this.convertLootEntity(le)
       if (item) this.items.push(item)
+    }
+
+    if (Math.random() < 0.15) {
+      const tier = Math.min(5, Math.ceil(this.level / 3) + 1)
+      const pool = EQUIPMENT.filter(e => e.tier <= tier)
+      if (pool.length > 0) {
+        const eq = pool[Math.floor(Math.random() * pool.length)]
+        this.items.push({
+          type: 'item',
+          name: eq.name,
+          x: (enemy.x as number) + (Math.random() < 0.5 ? -1 : 1) * Math.floor(Math.random() * 16),
+          y: (enemy.y as number) + (Math.random() < 0.5 ? -1 : 1) * Math.floor(Math.random() * 16),
+          alive: true,
+          itemType: 'equipment',
+          value: eq.id,
+        })
+      }
     }
 
     for (const state of this.questStates) {
@@ -129,7 +311,7 @@ export class GameplayManager {
         state.current = Math.min(state.current + 1, tracking.target)
         if (state.current >= tracking.target) {
           state.completed = true
-          this.addDamageText('Quest Complete!', this.player.x, this.player.y - 70)
+          this.addDamageText('Quest Complete!', this.player.x as number, (this.player.y as number) - 70)
           this.grantQuestReward(state.quest.id)
         }
       }
@@ -138,19 +320,22 @@ export class GameplayManager {
     this.checkAllQuests()
   }
 
-  onItemCollected(item: any) {
+  onItemCollected(item: Record<string, unknown>) {
     if (item.itemType === 'gold') {
-      this.gold += item.value
-      this.addDamageText(`+${item.value} Gold`, this.player.x, this.player.y - 30)
-      this.addToInventory('gold', 'Gold', item.value)
+      this.gold += item.value as number
+      this.addDamageText(`+${item.value} Gold`, this.player.x as number, (this.player.y as number) - 30)
+      this.addToInventory('gold', 'Gold', item.value as number)
+    } else if (item.itemType === 'equipment') {
+      const def = EQUIPMENT.find(e => e.id === item.value)
+      this.addToInventory(item.value as string, def?.name ?? (item.name as string), 1)
     } else if (item.itemType === 'health_potion') {
       this.addToInventory('health_potion', 'Health Potion', 1)
     } else if (item.itemType === 'mana_potion') {
       this.addToInventory('mana_potion', 'Mana Potion', 1)
     } else if (item.itemType === 'weapon') {
-      this.addToInventory(item.value, item.name, 1)
+      this.addToInventory(item.value as string, item.name as string, 1)
     } else {
-      this.addToInventory(item.itemType || 'item', item.name || 'Item', 1)
+      this.addToInventory((item.itemType as string) || 'item', (item.name as string) || 'Item', 1)
     }
 
     for (const state of this.questStates) {
@@ -160,7 +345,7 @@ export class GameplayManager {
         state.current = Math.min(this.gold, tracking.target)
         if (state.current >= tracking.target) {
           state.completed = true
-          this.addDamageText('Quest Complete!', this.player.x, this.player.y - 70)
+          this.addDamageText('Quest Complete!', this.player.x as number, (this.player.y as number) - 70)
           this.grantQuestReward(state.quest.id)
         }
       }
@@ -176,7 +361,7 @@ export class GameplayManager {
     const target = tracking ? tracking.target : 1
     state.current = target
     state.completed = true
-    this.addDamageText('Quest Complete!', this.player.x, this.player.y - 70)
+    this.addDamageText('Quest Complete!', this.player.x as number, (this.player.y as number) - 70)
     this.grantQuestReward(questId)
     this.checkAllQuests()
   }
@@ -186,15 +371,15 @@ export class GameplayManager {
     if (!slot) return
 
     if (slot.type === 'health_potion' && slot.quantity > 0) {
-      const maxHp = this.player.maxHp ?? 100
-      this.player.hp = Math.min((this.player.hp ?? 0) + POTION_HEAL, maxHp)
-      this.addDamageText(`+${POTION_HEAL} HP`, this.player.x, this.player.y - 30)
+      const maxHp = (this.player.maxHp as number) ?? 100
+      this.player.hp = Math.min(((this.player.hp as number) ?? 0) + POTION_HEAL, maxHp)
+      this.addDamageText(`+${POTION_HEAL} HP`, this.player.x as number, (this.player.y as number) - 30)
       slot.quantity--
       if (slot.quantity <= 0) this.inventory[index] = null
     } else if (slot.type === 'mana_potion' && slot.quantity > 0) {
-      const maxMana = this.player.maxMana ?? 50
-      this.player.mana = Math.min((this.player.mana ?? 0) + MANA_POTION_RESTORE, maxMana)
-      this.addDamageText(`+${MANA_POTION_RESTORE} Mana`, this.player.x, this.player.y - 30)
+      const maxMana = (this.player.maxMana as number) ?? 50
+      this.player.mana = Math.min(((this.player.mana as number) ?? 0) + MANA_POTION_RESTORE, maxMana)
+      this.addDamageText(`+${MANA_POTION_RESTORE} Mana`, this.player.x as number, (this.player.y as number) - 30)
       slot.quantity--
       if (slot.quantity <= 0) this.inventory[index] = null
     }
@@ -203,23 +388,23 @@ export class GameplayManager {
   castSpell(type: string, targetX: number, targetY: number): boolean {
     const data = this.content.getSpellData(type)
     if (!data) return false
-    if ((this.player.mana ?? 0) < data.cost) return false
+    if (((this.player.mana as number) ?? 0) < data.cost) return false
 
-    this.player.mana = Math.max(0, (this.player.mana ?? 0) - data.cost)
+    this.player.mana = Math.max(0, ((this.player.mana as number) ?? 0) - data.cost)
 
     if (type === 'Fireball') {
       this.pendingProjectiles.push({
         type,
-        x: this.player.x,
-        y: this.player.y,
+        x: this.player.x as number,
+        y: this.player.y as number,
         targetX,
         targetY,
       })
-      this.addDamageText('🔥 Fireball!', this.player.x, this.player.y - 40)
+      this.addDamageText('🔥 Fireball!', this.player.x as number, (this.player.y as number) - 40)
     } else if (type === 'Heal') {
       const healAmt = data.heal ?? 30
-      this.player.hp = Math.min((this.player.hp ?? 0) + healAmt, this.player.maxHp ?? 100)
-      this.addDamageText(`+${healAmt} HP`, this.player.x, this.player.y - 30)
+      this.player.hp = Math.min(((this.player.hp as number) ?? 0) + healAmt, (this.player.maxHp as number) ?? 100)
+      this.addDamageText(`+${healAmt} HP`, this.player.x as number, (this.player.y as number) - 30)
     }
 
     return true
@@ -260,10 +445,10 @@ export class GameplayManager {
       level: this.level,
       xp: this.xp,
       xpToNext: this.getXpToNext(),
-      hp: this.player.hp ?? 0,
-      maxHp: this.player.maxHp ?? 100,
-      mana: this.player.mana ?? 0,
-      maxMana: this.player.maxMana ?? 50,
+      hp: (this.player.hp as number) ?? 0,
+      maxHp: (this.player.maxHp as number) ?? 100,
+      mana: (this.player.mana as number) ?? 0,
+      maxMana: (this.player.maxMana as number) ?? 50,
       gold: this.gold,
       inventory: this.inventory,
       quests: this.questStates.map(qs => ({
@@ -285,10 +470,13 @@ export class GameplayManager {
     if (this.xp >= needed) {
       this.xp -= needed
       this.level++
-      this.player.maxHp = (this.player.maxHp ?? 100) + HP_PER_LEVEL
+      this.player.maxHp = ((this.player.maxHp as number) ?? 100) + HP_PER_LEVEL
       this.player.hp = this.player.maxHp
-      this.player.mana = this.player.maxMana ?? 50
-      this.addDamageText(`¡Level ${this.level}!`, this.player.x, this.player.y - 60)
+      this.player.mana = (this.player.maxMana as number) ?? 50
+      if (this.level % 2 === 0) {
+        this.player.skillPoints = ((this.player.skillPoints as number) ?? 0) + 1
+      }
+      this.addDamageText(`¡Level ${this.level}!`, this.player.x as number, (this.player.y as number) - 60)
       if (this.onLevelUp) this.onLevelUp()
       this.checkLevelUp()
     }
@@ -343,7 +531,7 @@ export class GameplayManager {
     }
   }
 
-  private convertLootEntity(entity: { type: string; x: number; y: number; data: Record<string, unknown> }): any {
+  private convertLootEntity(entity: { type: string; x: number; y: number; data: Record<string, unknown> }): Record<string, unknown> | null {
     if (entity.type === 'gold') {
       const amount = entity.data.amount as number
       return { type: 'item', name: `${amount} Gold`, x: entity.x, y: entity.y, alive: true, itemType: 'gold', value: amount }

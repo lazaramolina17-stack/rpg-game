@@ -115,7 +115,7 @@ export class Renderer {
 
     ctx.clearRect(0, 0, w, h)
 
-    drawBackground(ctx, w, h, -cam.x, -cam.y, time)
+    drawBackground(ctx, w, h, time, 'clear')
 
     this.updateParticles(dt)
     this.drawTiles(ctx, w, h, cam, time)

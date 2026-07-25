@@ -1,4 +1,7 @@
-import { ProceduralTiles, drawEntitySprite, drawBackground, drawFogOfWar, drawLightning } from './graphics.js'
+import * as THREE from 'three'
+import { ProceduralTiles } from './graphics.js'
+import { initScene } from './three-scene.js'
+import { createTileMesh, createPlayerModel, createEnemyModel, createNPCModel, createItemModel, createProjectileModel } from './three-models.js'
 
 export const TILE = 32
 
@@ -50,16 +53,23 @@ export interface DamageText {
   text: string; x: number; y: number; alpha: number
 }
 
-interface Particle {
-  x: number; y: number; vx: number; vy: number
-  life: number; maxLife: number; color: string; size: number
+interface Particle3D {
+  mesh: THREE.Mesh
+  vx: number; vz: number; vy: number
+  life: number; maxLife: number
 }
 
 export class Renderer {
-  private ctx: CanvasRenderingContext2D
-  private camera: Camera = { x: 0, y: 0, zoom: 1 }
+  private overlayCtx: CanvasRenderingContext2D
+  private scene: THREE.Scene
+  private threeCamera: THREE.OrthographicCamera
+  private threeRenderer: THREE.WebGLRenderer
+  private cameraState: Camera = { x: 0, y: 0, zoom: 1 }
   private entities: Entity[] = []
-  private particles: Particle[] = []
+  private particles3D: Particle3D[] = []
+  private projectileMeshes: THREE.Mesh[] = []
+  private tileMeshMap: Map<string, THREE.Mesh> = new Map()
+  private entityModelMap: Map<string, THREE.Group> = new Map()
   private screenFlash = 0
   private levelUpText = 0
   private levelUpY = 0
@@ -67,14 +77,43 @@ export class Renderer {
   private fps = 0
   private frameCount = 0
   private lastFpsTime = 0
+  private sharedParticleGeo: THREE.SphereGeometry
   hud: HUDData | null = null
   damageTexts: DamageText[] = []
   showVictory = false
   gameOver = false
-  private minimapVisible = false
+  minimapVisible = false
 
   constructor(private canvas: HTMLCanvasElement) {
-    this.ctx = canvas.getContext('2d')!
+    const threeCanvas = document.createElement('canvas')
+    threeCanvas.style.position = 'absolute'
+    threeCanvas.style.top = '0'
+    threeCanvas.style.left = '0'
+    threeCanvas.style.width = '100%'
+    threeCanvas.style.height = '100%'
+    threeCanvas.style.display = 'block'
+
+    const container = document.getElementById('game-container') || document.body
+    if (container.style.position !== 'absolute' && container.style.position !== 'relative') {
+      container.style.position = 'relative'
+    }
+    container.insertBefore(threeCanvas, canvas)
+
+    this.canvas.style.position = 'absolute'
+    this.canvas.style.top = '0'
+    this.canvas.style.left = '0'
+    this.canvas.style.pointerEvents = 'none'
+
+    this.overlayCtx = canvas.getContext('2d')!
+
+    const init = initScene(threeCanvas)
+    this.scene = init.scene
+    this.threeCamera = init.camera
+    this.threeRenderer = init.renderer
+    init.ground.visible = false
+
+    this.sharedParticleGeo = new THREE.SphereGeometry(0.08, 6, 6)
+
     this.resize()
     window.addEventListener('resize', () => this.resize())
   }
@@ -84,24 +123,35 @@ export class Renderer {
     this.canvas.height = window.innerHeight
   }
 
-  getCtx() { return this.ctx }
+  getCtx() { return this.overlayCtx }
 
-  setCamera(cam: Partial<Camera>) { Object.assign(this.camera, cam) }
-  getCamera() { return this.camera }
+  setCamera(cam: Partial<Camera>) {
+    Object.assign(this.cameraState, cam)
+    this.updateThreeCamera()
+  }
+
+  getCamera() { return this.cameraState }
+
   setEntities(es: Entity[]) { this.entities = es }
+
   toggleMinimap(visible: boolean) { this.minimapVisible = visible }
 
   addParticles(x: number, y: number, color: string, count = 8) {
+    const wx = x / 32, wz = y / 32
+    const colorObj = new THREE.Color(color)
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2
-      const speed = 30 + Math.random() * 60
-      this.particles.push({
-        x, y,
+      const speed = (30 + Math.random() * 60) / 32
+      const mesh = new THREE.Mesh(this.sharedParticleGeo, new THREE.MeshBasicMaterial({ color: colorObj }))
+      mesh.position.set(wx, 0.3, wz)
+      this.scene.add(mesh)
+      this.particles3D.push({
+        mesh,
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 30,
+        vz: Math.sin(angle) * speed,
+        vy: 0.5 + Math.random() * 1.5,
         life: 0.5 + Math.random() * 0.5,
         maxLife: 0.5 + Math.random() * 0.5,
-        color, size: 2 + Math.random() * 3,
       })
     }
   }
@@ -111,16 +161,18 @@ export class Renderer {
 
   render(time: number, dt: number) {
     this.time = time
-    const ctx = this.ctx, w = this.canvas.width, h = this.canvas.height, cam = this.camera
+    this.updateThreeCamera()
+    this.updateTileMeshes()
+    this.updateEntityMeshes(time)
+    this.updateParticles3D(dt)
+    this.updateProjectiles(time)
 
+    this.threeRenderer.render(this.scene, this.threeCamera)
+
+    const ctx = this.overlayCtx, w = this.canvas.width, h = this.canvas.height
     ctx.clearRect(0, 0, w, h)
 
-    drawBackground(ctx, w, h, time, 'clear')
-
-    this.updateParticles(dt)
-    this.drawTiles(ctx, w, h, cam, time)
-    this.drawEntities(ctx, cam, time)
-    this.drawParticles(ctx)
+    this.drawHpBars(ctx)
     this.drawHUD(ctx, w, h)
     this.drawDamageTexts(ctx)
 
@@ -133,59 +185,146 @@ export class Renderer {
       ctx.fillStyle = '#fbbf24'
       ctx.font = 'bold 36px sans-serif'
       ctx.textAlign = 'center'
-      ctx.fillText('✨ LEVEL UP! ✨', w / 2, this.levelUpY)
+      ctx.fillText('LEVEL UP!', w / 2, this.levelUpY)
       this.levelUpText -= dt
     }
     this.drawDebug(ctx)
 
     if (this.gameOver) this.drawGameOver(ctx, w, h)
     if (this.showVictory) this.drawVictory(ctx, w, h)
-    if (this.minimapVisible) this.drawMinimap(ctx, w, h, cam)
+    if (this.minimapVisible) this.drawMinimap(ctx, w, h, this.cameraState)
 
     this.frameCount++
     if (time - this.lastFpsTime >= 1000) { this.fps = this.frameCount; this.frameCount = 0; this.lastFpsTime = time }
   }
 
-  private updateParticles(dt: number) {
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const p = this.particles[i]
-      p.x += p.vx * dt; p.y += p.vy * dt
-      p.vy += 120 * dt; p.life -= dt
-      if (p.life <= 0) this.particles.splice(i, 1)
-    }
+  private updateThreeCamera() {
+    const cam = this.cameraState
+    const worldX = cam.x / 32, worldZ = cam.y / 32
+    this.threeCamera.position.set(worldX, 20, worldZ)
+    this.threeCamera.lookAt(worldX, 0, worldZ)
+    const zoom = cam.zoom || 1
+    const aspect = this.canvas.width / this.canvas.height
+    const frustumSize = 30 / zoom
+    this.threeCamera.left = (-frustumSize * aspect) / 2
+    this.threeCamera.right = (frustumSize * aspect) / 2
+    this.threeCamera.top = frustumSize / 2
+    this.threeCamera.bottom = -frustumSize / 2
+    this.threeCamera.updateProjectionMatrix()
   }
 
-  private drawTiles(ctx: CanvasRenderingContext2D, w: number, h: number, cam: Camera, time: number) {
+  private updateTileMeshes() {
+    const cam = this.cameraState, w = this.canvas.width, h = this.canvas.height
     const sx = Math.max(0, Math.floor((cam.x - w / 2) / TILE) - 1)
     const sy = Math.max(0, Math.floor((cam.y - h / 2) / TILE) - 1)
     const ex = Math.min(TILEMAP[0].length, Math.ceil((cam.x + w / 2) / TILE) + 1)
     const ey = Math.min(TILEMAP.length, Math.ceil((cam.y + h / 2) / TILE) + 1)
 
-    ctx.save()
-    ctx.translate(w / 2 - cam.x, h / 2 - cam.y)
-
+    const visibleKeys = new Set<string>()
     for (let y = sy; y < ey; y++) {
       for (let x = sx; x < ex; x++) {
+        const key = `${x},${y}`
+        visibleKeys.add(key)
+        if (this.tileMeshMap.has(key)) continue
         const tile = TILEMAP[y]?.[x] ?? 0
-        ctx.save()
-        ctx.translate(x * TILE, y * TILE)
-        ProceduralTiles.generateTile(ctx, tile, x * 100 + y, time)
-        ctx.restore()
+        const mesh = createTileMesh(tile, x * 100 + y)
+        mesh.position.set(x, 0.075, y)
+        this.scene.add(mesh)
+        this.tileMeshMap.set(key, mesh)
       }
     }
-
-    ctx.restore()
+    for (const [key, mesh] of this.tileMeshMap) {
+      if (!visibleKeys.has(key)) {
+        this.scene.remove(mesh)
+        mesh.geometry.dispose()
+        ;(mesh.material as THREE.Material).dispose()
+        this.tileMeshMap.delete(key)
+      }
+    }
   }
 
-  private drawEntities(ctx: CanvasRenderingContext2D, cam: Camera, time: number) {
-    const sorted = [...this.entities].sort((a, b) => a.y - b.y)
+  private updateEntityMeshes(time: number) {
+    const currentKeys = new Set<string>()
+    const es = this.entities
+    for (let i = 0; i < es.length; i++) {
+      const e = es[i]
+      const key = `${i}_${e.type}_${e.name}`
+      currentKeys.add(key)
+      let model = this.entityModelMap.get(key)
+      if (!model) {
+        if (e.type === 'player') model = createPlayerModel()
+        else if (e.type === 'npc') model = createNPCModel(e.name)
+        else if (e.type === 'enemy') model = createEnemyModel(e.name)
+        else if (e.type === 'item') { const m = createItemModel(e.itemType); model = new THREE.Group(); model.add(m) }
+        else { model = createEnemyModel(e.name) }
+        this.entityModelMap.set(key, model)
+        this.scene.add(model)
+      }
+      const wx = e.x / 32, wz = e.y / 32
+      model.position.set(wx, 0, wz)
+      const bob = (e.type === 'player' || e.type === 'npc' || e.type === 'enemy') ? Math.sin(time * 0.003 * 3 + e.x * 0.1) * 0.1 : 0
+      model.position.y += bob
+      if (e.type === 'player') {
+        model.rotation.y = 0
+      } else if (e.type === 'enemy') {
+        model.rotation.y = 0
+      }
+
+      const alive = e.hp !== undefined ? e.hp > 0 : true
+      model.visible = alive
+    }
+    for (const [key, model] of this.entityModelMap) {
+      if (!currentKeys.has(key)) {
+        this.scene.remove(model)
+        model.traverse(child => {
+          if (child instanceof THREE.Mesh) {
+            child.geometry.dispose()
+            ;(child.material as THREE.Material).dispose()
+          }
+        })
+        this.entityModelMap.delete(key)
+      }
+    }
+  }
+
+  private updateParticles3D(dt: number) {
+    for (let i = this.particles3D.length - 1; i >= 0; i--) {
+      const p = this.particles3D[i]
+      p.mesh.position.x += p.vx * dt
+      p.mesh.position.z += p.vz * dt
+      p.mesh.position.y += p.vy * dt
+      p.vy -= 2.5 * dt
+      p.life -= dt
+      if (p.life <= 0) {
+        this.scene.remove(p.mesh)
+        p.mesh.geometry.dispose()
+        p.mesh.material.dispose()
+        this.particles3D.splice(i, 1)
+      } else {
+        const alpha = Math.max(0, p.life / p.maxLife)
+        p.mesh.material.opacity = alpha
+        p.mesh.material.transparent = true
+        const s = 0.5 + alpha * 0.5
+        p.mesh.scale.setScalar(s)
+      }
+    }
+  }
+
+  private updateProjectiles(time: number) {
+    for (const m of this.projectileMeshes) {
+      this.scene.remove(m)
+      m.geometry.dispose()
+      m.material.dispose()
+    }
+    this.projectileMeshes = []
+  }
+
+  private drawHpBars(ctx: CanvasRenderingContext2D) {
+    const cam = this.cameraState
     ctx.save()
     ctx.translate(this.canvas.width / 2 - cam.x, this.canvas.height / 2 - cam.y)
-    const t = time
-    for (const e of sorted) {
-      const bob = e.type === 'player' || e.type === 'npc' || e.type === 'enemy' ? 1.5 : 0
-      drawEntitySprite(ctx, e.type, e.name, e.x, e.y, t, bob)
-      if (e.hp !== undefined && e.maxHp !== undefined && e.maxHp > 0) {
+    for (const e of this.entities) {
+      if (e.hp !== undefined && e.maxHp !== undefined && e.maxHp > 0 && e.hp > 0) {
         const bw = 28, bh = 4, bx = e.x - bw / 2, by = e.y - 22
         ctx.fillStyle = '#374151'; ctx.fillRect(bx, by, bw, bh)
         const ratio = Math.max(0, (e.hp ?? 0) / e.maxHp)
@@ -197,18 +336,8 @@ export class Renderer {
     ctx.restore()
   }
 
-  private drawParticles(ctx: CanvasRenderingContext2D) {
-    for (const p of this.particles) {
-      const alpha = Math.max(0, p.life / p.maxLife)
-      ctx.globalAlpha = alpha
-      ctx.fillStyle = p.color
-      ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size)
-    }
-    ctx.globalAlpha = 1
-  }
-
   private drawDamageTexts(ctx: CanvasRenderingContext2D) {
-    const cam = this.camera, w = this.canvas.width, h = this.canvas.height
+    const cam = this.cameraState, w = this.canvas.width, h = this.canvas.height
     for (const d of this.damageTexts) {
       ctx.globalAlpha = d.alpha
       ctx.fillStyle = '#ef4444'
@@ -245,12 +374,12 @@ export class Renderer {
       ctx.fillText(`${Math.round(val)}/${Math.round(max)}`, bx + bw / 2, by + 9)
     }
 
-    bar(`❤️ Lv${hud.level}`, hud.hp, hud.maxHp, py + 8, '#34d399')
-    bar('💠 MP', hud.mana, hud.maxMana, py + 26, '#3b82f6')
-    bar('⭐ XP', hud.xp, hud.xpToNext, py + 44, '#a855f7')
+    bar(`Lv${hud.level}`, hud.hp, hud.maxHp, py + 8, '#34d399')
+    bar('MP', hud.mana, hud.maxMana, py + 26, '#3b82f6')
+    bar('XP', hud.xp, hud.xpToNext, py + 44, '#a855f7')
     ctx.fillStyle = '#fbbf24'
     ctx.font = '11px sans-serif'; ctx.textAlign = 'left'
-    ctx.fillText(`💰 ${hud.gold}`, px + 10, py + 72)
+    ctx.fillText(`${hud.gold} gold`, px + 10, py + 72)
     ctx.fillStyle = '#94a3b8'
     ctx.font = '10px monospace'
     ctx.fillText(`FPS:${this.fps} En:${this.entities.length}`, px + 10, py + 90)
@@ -286,7 +415,7 @@ export class Renderer {
       this.roundRect(ctx, qx, qy, 220, 16 + hud.quests.length * 20, 8)
       ctx.fillStyle = '#f59e0b'
       ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'left'
-      ctx.fillText('📜 Quests', qx + 10, qy + 14)
+      ctx.fillText('Quests', qx + 10, qy + 14)
       for (let i = 0; i < hud.quests.length; i++) {
         const q = hud.quests[i]
         ctx.fillStyle = q.completed ? '#34d399' : '#e2e8f0'
@@ -303,10 +432,10 @@ export class Renderer {
       this.roundRect(ctx, sx, sy, 300, 160, 12)
       ctx.fillStyle = '#fbbf24'
       ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center'
-      ctx.fillText('🏪 Shop', w / 2, sy + 24)
+      ctx.fillText('Shop', w / 2, sy + 24)
       ctx.fillStyle = '#94a3b8'
       ctx.font = '10px sans-serif'
-      ctx.fillText(`💰 ${hud.gold} gold`, w / 2, sy + 40)
+      ctx.fillText(`${hud.gold} gold`, w / 2, sy + 40)
       for (let i = 0; i < hud.shopItems.length; i++) {
         const item = hud.shopItems[i]
         const iy = sy + 56 + i * 30
@@ -315,14 +444,14 @@ export class Renderer {
         ctx.fillText(`${i + 1}. ${item.name}`, sx + 16, iy)
         ctx.fillStyle = '#fbbf24'
         ctx.font = '11px sans-serif'; ctx.textAlign = 'right'
-        ctx.fillText(`💰${item.price}`, sx + 284, iy)
+        ctx.fillText(`${item.price}`, sx + 284, iy)
         ctx.fillStyle = '#64748b'
         ctx.font = '9px sans-serif'; ctx.textAlign = 'left'
         ctx.fillText(item.description, sx + 16, iy + 14)
       }
       ctx.fillStyle = '#94a3b8'
       ctx.font = '10px sans-serif'; ctx.textAlign = 'center'
-      ctx.fillText('[1-3] Comprar  [ESC] Salir', w / 2, sy + 148)
+      ctx.fillText('[1-3] Buy  [ESC] Exit', w / 2, sy + 148)
     }
   }
 
@@ -332,7 +461,7 @@ export class Renderer {
     ctx.fillStyle = '#ef4444'
     ctx.font = 'bold 56px sans-serif'; ctx.textAlign = 'center'
     ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 20
-    ctx.fillText('💀 GAME OVER', w / 2, h / 2 - 30)
+    ctx.fillText('GAME OVER', w / 2, h / 2 - 30)
     ctx.shadowBlur = 0
     ctx.fillStyle = '#94a3b8'
     ctx.font = '18px sans-serif'
@@ -345,11 +474,11 @@ export class Renderer {
     ctx.fillStyle = '#fbbf24'
     ctx.font = 'bold 48px sans-serif'; ctx.textAlign = 'center'
     ctx.shadowColor = '#fbbf24'; ctx.shadowBlur = 30
-    ctx.fillText('🎉 YOU WIN! 🎉', w / 2, h / 2 - 20)
+    ctx.fillText('YOU WIN!', w / 2, h / 2 - 20)
     ctx.shadowBlur = 0
     ctx.fillStyle = '#e2e8f0'
     ctx.font = '18px sans-serif'
-    ctx.fillText('¡Todas las quests completadas!', w / 2, h / 2 + 30)
+    ctx.fillText('Todas las quests completadas!', w / 2, h / 2 + 30)
     ctx.fillStyle = '#94a3b8'
     ctx.font = '14px sans-serif'
     ctx.fillText('Presiona R para reiniciar', w / 2, h / 2 + 60)
@@ -361,7 +490,7 @@ export class Renderer {
     ctx.fillRect(x - 4, y - 14, 240, 18)
     ctx.fillStyle = '#475569'
     ctx.font = '10px monospace'; ctx.textAlign = 'left'
-    ctx.fillText(`[WASD/Joystick] Mov  [Space/⚔] Atk  [E/✋] Int  [M/🗺] Mapa  [1-4]`, x, y - 2)
+    ctx.fillText('[WASD] Mov  [Space] Atk  [E] Int  [M] Mapa  [1-4]', x, y - 2)
   }
 
   private drawMinimap(ctx: CanvasRenderingContext2D, w: number, h: number, cam: Camera) {

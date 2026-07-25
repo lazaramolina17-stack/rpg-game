@@ -1,15 +1,11 @@
-// Build script - bundles TypeScript for browser
-import { build } from 'esbuild'
-
-await build({
+import * as esbuild from 'esbuild'
+await esbuild.build({
   entryPoints: ['src/web/main.ts'],
   bundle: true,
-  outfile: 'docs/bundle.js',
-  format: 'iife',
-  platform: 'browser',
-  target: 'es2020',
   minify: true,
-  sourcemap: false,
+  outfile: 'docs/bundle.js',
+  format: 'esm',
+  platform: 'browser',
+  external: ['three'],
 })
-
 console.log('✅ Built docs/bundle.js')

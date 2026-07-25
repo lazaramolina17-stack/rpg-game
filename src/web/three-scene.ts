@@ -12,7 +12,7 @@ export function initScene(canvas: HTMLCanvasElement): {
   scene.fog = new THREE.Fog(0x0f172a, 30, 60)
 
   const camera = new THREE.PerspectiveCamera(70, canvas.clientWidth / canvas.clientHeight, 0.1, 100)
-  camera.position.set(0, 0.8, 0)
+  camera.position.set(0, 1.0, 0)
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false })
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))

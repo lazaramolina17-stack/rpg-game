@@ -209,7 +209,7 @@ export class Renderer {
   private updateThreeCamera() {
     const cam = this.cameraState
     const worldX = cam.x / 32, worldZ = cam.y / 32
-    this.threeCamera.position.set(worldX, 0.8, worldZ)
+    this.threeCamera.position.set(worldX, 1.0, worldZ)
     const dir = new THREE.Vector3(
       Math.sin(this.yaw) * Math.cos(this.pitch),
       Math.sin(this.pitch),

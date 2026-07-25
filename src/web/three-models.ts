@@ -14,16 +14,35 @@ export function createTileMesh(tileType: number, _seed: number): THREE.Mesh {
 
 export function createPlayerModel(): THREE.Group {
   const g = new THREE.Group()
+  const skinMat = new THREE.MeshStandardMaterial({ color: 0xfde68a, roughness: 0.5 })
   const bodyMat = new THREE.MeshStandardMaterial({ color: 0x7c3aed, roughness: 0.6 })
   const body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.3), bodyMat)
   body.position.y = 0.5
   body.castShadow = true
   g.add(body)
   const headMat = new THREE.MeshStandardMaterial({ color: 0xfde68a, roughness: 0.5 })
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), headMat)
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 8), headMat)
   head.position.y = 0.95
   head.castShadow = true
   g.add(head)
+  const armMat = new THREE.MeshStandardMaterial({ color: 0x7c3aed, roughness: 0.6 })
+  const armGeo = new THREE.CylinderGeometry(0.06, 0.07, 0.35, 6)
+  const leftArm = new THREE.Mesh(armGeo, armMat)
+  leftArm.position.set(-0.35, 0.7, 0)
+  leftArm.rotation.z = 0.15
+  g.add(leftArm)
+  const rightArm = new THREE.Mesh(armGeo, armMat)
+  rightArm.position.set(0.35, 0.7, 0)
+  rightArm.rotation.z = -0.15
+  g.add(rightArm)
+  const handMat = new THREE.MeshStandardMaterial({ color: 0xfde68a, roughness: 0.5 })
+  const handGeo = new THREE.SphereGeometry(0.07, 6, 6)
+  const leftHand = new THREE.Mesh(handGeo, handMat)
+  leftHand.position.set(-0.35, 0.5, 0)
+  g.add(leftHand)
+  const rightHand = new THREE.Mesh(handGeo, handMat)
+  rightHand.position.set(0.35, 0.5, 0)
+  g.add(rightHand)
   const swordMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.5, roughness: 0.3 })
   const sword = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.3, 0.02), swordMat)
   sword.position.set(0.35, 0.7, 0)
@@ -45,6 +64,24 @@ export function createEnemyModel(name: string): THREE.Group {
   head.position.y = 0.95
   head.castShadow = true
   g.add(head)
+  const armMat = new THREE.MeshStandardMaterial({ color, roughness: 0.7 })
+  const armGeo = new THREE.CylinderGeometry(0.05, 0.06, 0.3, 5)
+  const leftArm = new THREE.Mesh(armGeo, armMat)
+  leftArm.position.set(-0.34, 0.65, 0)
+  leftArm.rotation.z = 0.2
+  g.add(leftArm)
+  const rightArm = new THREE.Mesh(armGeo, armMat)
+  rightArm.position.set(0.34, 0.65, 0)
+  rightArm.rotation.z = -0.2
+  g.add(rightArm)
+  const handMat = new THREE.MeshStandardMaterial({ color: name.includes('Skeleton') ? 0xf8fafc : 0xfca5a5, roughness: 0.5 })
+  const handGeo = new THREE.SphereGeometry(0.06, 4, 4)
+  const leftHand = new THREE.Mesh(handGeo, handMat)
+  leftHand.position.set(-0.34, 0.47, 0)
+  g.add(leftHand)
+  const rightHand = new THREE.Mesh(handGeo, handMat)
+  rightHand.position.set(0.34, 0.47, 0)
+  g.add(rightHand)
   return g
 }
 
@@ -64,6 +101,24 @@ export function createNPCModel(name: string): THREE.Group {
   head.position.y = 0.95
   head.castShadow = true
   g.add(head)
+  const armMat = new THREE.MeshStandardMaterial({ color: 0xd4a574, roughness: 0.7 })
+  const armGeo = new THREE.CylinderGeometry(0.05, 0.06, 0.3, 5)
+  const leftArm = new THREE.Mesh(armGeo, armMat)
+  leftArm.position.set(-0.34, 0.65, 0)
+  leftArm.rotation.z = 0.2
+  g.add(leftArm)
+  const rightArm = new THREE.Mesh(armGeo, armMat)
+  rightArm.position.set(0.34, 0.65, 0)
+  rightArm.rotation.z = -0.2
+  g.add(rightArm)
+  const handMat = new THREE.MeshStandardMaterial({ color: 0xfde68a, roughness: 0.5 })
+  const handGeo = new THREE.SphereGeometry(0.06, 4, 4)
+  const leftHand = new THREE.Mesh(handGeo, handMat)
+  leftHand.position.set(-0.34, 0.47, 0)
+  g.add(leftHand)
+  const rightHand = new THREE.Mesh(handGeo, handMat)
+  rightHand.position.set(0.34, 0.47, 0)
+  g.add(rightHand)
   return g
 }
 

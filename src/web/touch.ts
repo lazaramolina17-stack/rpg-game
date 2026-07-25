@@ -225,16 +225,21 @@ export class TouchController {
   private drawJoystick(ctx: CanvasRenderingContext2D) {
     ctx.save()
 
-    ctx.globalAlpha = 0.3
+    ctx.fillStyle = 'rgba(15,23,42,0.6)'
+    ctx.beginPath()
+    ctx.arc(this.jcx, this.jcy, this.jr + 4, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.globalAlpha = 0.7
     ctx.beginPath()
     ctx.arc(this.jcx, this.jcy, this.jr, 0, Math.PI * 2)
     ctx.fillStyle = '#1e1b4b'
     ctx.fill()
-    ctx.strokeStyle = 'rgba(168,85,247,0.5)'
-    ctx.lineWidth = 2
+    ctx.strokeStyle = 'rgba(168,85,247,0.8)'
+    ctx.lineWidth = 3
     ctx.stroke()
 
-    ctx.globalAlpha = this.jActive ? 0.85 : 0.45
+    ctx.globalAlpha = this.jActive ? 1 : 0.8
     ctx.beginPath()
     ctx.arc(this.jcx + this.jknobX, this.jcy + this.jknobY, this.jr * 0.32, 0, Math.PI * 2)
     const grad = ctx.createRadialGradient(
@@ -245,8 +250,8 @@ export class TouchController {
     grad.addColorStop(1, '#7c3aed')
     ctx.fillStyle = grad
     ctx.fill()
-    ctx.strokeStyle = 'rgba(192,132,252,0.7)'
-    ctx.lineWidth = 2
+    ctx.strokeStyle = 'rgba(192,132,252,0.9)'
+    ctx.lineWidth = 3
     ctx.stroke()
 
     ctx.restore()
@@ -256,15 +261,20 @@ export class TouchController {
     const r = b.radius * b.scale
     ctx.save()
 
-    ctx.globalAlpha = b.down ? 0.9 : 0.4
+    ctx.fillStyle = `rgba(15,23,42,${b.down ? 0.7 : 0.5})`
+    ctx.beginPath()
+    ctx.arc(b.x, b.y, r + 3, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.globalAlpha = b.down ? 1 : 0.8
 
     ctx.beginPath()
     ctx.arc(b.x, b.y, r, 0, Math.PI * 2)
-    const alpha = b.down ? '66' : '22'
+    const alpha = b.down ? 'bb' : '88'
     ctx.fillStyle = b.color + alpha
     ctx.fill()
-    ctx.strokeStyle = b.down ? b.color : b.color + '99'
-    ctx.lineWidth = Math.max(1.5, r * 0.04)
+    ctx.strokeStyle = b.down ? b.color : b.color + 'cc'
+    ctx.lineWidth = Math.max(2.5, r * 0.06)
     ctx.stroke()
 
     if (b.down) {
@@ -278,7 +288,7 @@ export class TouchController {
       ctx.shadowBlur = 0
     }
 
-    ctx.globalAlpha = b.down ? 1 : 0.65
+    ctx.globalAlpha = b.down ? 1 : 0.9
     ctx.font = `${Math.round(r * 1.2)}px sans-serif`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'

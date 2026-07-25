@@ -11,184 +11,225 @@ function mulberry32(seed: number) {
 }
 
 function drawGrassTile(ctx: CanvasRenderingContext2D, rng: () => number) {
-  ctx.fillStyle = '#3a7d32'
+  const g = ctx.createLinearGradient(0, 0, 0, 32)
+  g.addColorStop(0, '#4a8c3a')
+  g.addColorStop(0.5, '#3a7d32')
+  g.addColorStop(1, '#2d6b25')
+  ctx.fillStyle = g
   ctx.fillRect(0, 0, 32, 32)
 
-  const baseGreen = 50 + rng() * 40 | 0
-  ctx.fillStyle = `rgb(${40 + rng() * 30 | 0},${baseGreen},${30 + rng() * 30 | 0})`
-  for (let i = 0; i < 12; i++) {
-    ctx.fillRect(rng() * 28 | 0, rng() * 28 | 0, 2 + rng() * 3 | 0, 1)
+  for (let i = 0; i < 6; i++) {
+    const gx = 2 + rng() * 28, gy = 2 + rng() * 28
+    ctx.strokeStyle = `rgb(${60 + rng() * 40 | 0},${120 + rng() * 50 | 0},${30 + rng() * 30 | 0})`
+    ctx.lineWidth = 1.5
+    ctx.beginPath()
+    ctx.moveTo(gx, gy)
+    ctx.quadraticCurveTo(gx + rng() * 4 - 2, gy - 6 - rng() * 4, gx + rng() * 3 - 1.5, gy + 2)
+    ctx.stroke()
   }
 
-  for (let i = 0; i < 4; i++) {
-    const gx = rng() * 28 | 0, gy = rng() * 28 | 0
-    ctx.fillStyle = `rgb(${80 + rng() * 60 | 0},${130 + rng() * 40 | 0},${40 + rng() * 40 | 0})`
-    ctx.fillRect(gx, gy, 2, 4 + rng() * 4 | 0)
-    ctx.fillRect(gx + 1, gy, 1, 2)
-  }
-
-  for (let i = 0; i < 2; i++) {
-    const fx = 6 + rng() * 20 | 0, fy = 6 + rng() * 20 | 0
-    ctx.fillStyle = `rgb(${200 + rng() * 55 | 0},${100 + rng() * 60 | 0},${120 + rng() * 60 | 0})`
-    ctx.fillRect(fx, fy, 2, 2)
-    ctx.fillRect(fx + 2, fy - 1, 1, 1)
-    ctx.fillRect(fx - 1, fy + 1, 1, 1)
+  for (let i = 0; i < 3; i++) {
+    const fx = 4 + rng() * 24, fy = 4 + rng() * 24
+    const grad = ctx.createRadialGradient(fx, fy, 0, fx, fy, 3)
+    const r = 180 + rng() * 75 | 0
+    const gr = 80 + rng() * 60 | 0
+    const b = 80 + rng() * 80 | 0
+    grad.addColorStop(0, `rgb(${r},${gr},${b})`)
+    grad.addColorStop(1, `rgba(${r},${gr},${b},0)`)
+    ctx.fillStyle = grad
+    ctx.beginPath()
+    ctx.arc(fx, fy, 3, 0, Math.PI * 2)
+    ctx.fill()
   }
 }
 
 function drawForestTile(ctx: CanvasRenderingContext2D, rng: () => number) {
-  ctx.fillStyle = '#1a3a17'
+  const g = ctx.createRadialGradient(16, 16, 0, 16, 16, 20)
+  g.addColorStop(0, '#1e4a1a')
+  g.addColorStop(0.6, '#153a12')
+  g.addColorStop(1, '#0d2a0a')
+  ctx.fillStyle = g
   ctx.fillRect(0, 0, 32, 32)
 
-  ctx.fillStyle = `rgb(${15 + rng() * 20 | 0},${30 + rng() * 30 | 0},${15 + rng() * 15 | 0})`
-  for (let i = 0; i < 16; i++) {
-    ctx.fillRect(rng() * 30 | 0, rng() * 30 | 0, 1 + rng() * 2 | 0, 1)
-  }
-
-  for (let i = 0; i < 3; i++) {
-    const lx = 4 + rng() * 24 | 0, ly = 2 + rng() * 20 | 0
-    ctx.fillStyle = `rgb(${20 + rng() * 30 | 0},${60 + rng() * 30 | 0},${10 + rng() * 20 | 0})`
+  for (let i = 0; i < 4; i++) {
+    const lx = 4 + rng() * 24, ly = 4 + rng() * 20
+    const grad = ctx.createRadialGradient(lx, ly, 0, lx, ly, 8 + rng() * 4)
+    grad.addColorStop(0, `rgb(${20 + rng() * 30 | 0},${70 + rng() * 30 | 0},${20 + rng() * 20 | 0})`)
+    grad.addColorStop(1, `rgba(20,50,15,0)`)
+    ctx.fillStyle = grad
     ctx.beginPath()
-    ctx.arc(lx, ly, 6 + rng() * 3 | 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.fillStyle = `rgb(${30 + rng() * 30 | 0},${80 + rng() * 30 | 0},${15 + rng() * 20 | 0})`
-    ctx.beginPath()
-    ctx.arc(lx + 3, ly - 2, 4 + rng() * 2 | 0, 0, Math.PI * 2)
+    ctx.ellipse(lx, ly, 6 + rng() * 4, 4 + rng() * 3, rng() * 0.5, 0, Math.PI * 2)
     ctx.fill()
   }
 
   for (let i = 0; i < 2; i++) {
-    const mx = 8 + rng() * 16 | 0, my = 8 + rng() * 16 | 0
-    ctx.fillStyle = `rgb(${180 + rng() * 40 | 0},${120 + rng() * 40 | 0},${80 + rng() * 30 | 0})`
-    ctx.fillRect(mx, my, 3, 2)
-    ctx.fillRect(mx + 1, my - 1, 1, 1)
-    ctx.fillStyle = `rgb(${220 + rng() * 35 | 0},${80 + rng() * 40 | 0},${60 + rng() * 40 | 0})`
-    ctx.fillRect(mx, my - 1, 1, 1)
+    const mx = 6 + rng() * 20, my = 6 + rng() * 20
+    ctx.shadowColor = `rgba(180,100,60,0.3)`
+    ctx.shadowBlur = 3
+    ctx.fillStyle = `rgb(${160 + rng() * 40 | 0},${100 + rng() * 40 | 0},${60 + rng() * 30 | 0})`
+    ctx.beginPath()
+    ctx.arc(mx, my, 2, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.shadowBlur = 0
   }
 }
 
 function drawWaterTile(ctx: CanvasRenderingContext2D, rng: () => number, t: number) {
   const wave = Math.sin(t * 2 + rng() * 10) * 0.15 + 0.85
-  ctx.fillStyle = `rgb(${30 * wave | 0},${100 * wave | 0},${220 * wave | 0})`
+  const g = ctx.createLinearGradient(0, 0, 0, 32)
+  g.addColorStop(0, `rgb(${20 * wave | 0},${80 * wave | 0},${200 * wave | 0})`)
+  g.addColorStop(1, `rgb(${40 * wave | 0},${120 * wave | 0},${240 * wave | 0})`)
+  ctx.fillStyle = g
   ctx.fillRect(0, 0, 32, 32)
 
   for (let i = 0; i < 4; i++) {
-    const wy = (i * 8 + Math.sin(t * 1.5 + i * 1.5 + rng() * 10) * 3 + 4) | 0
-    ctx.fillStyle = `rgba(255,255,255,${0.08 + Math.sin(t * 2 + i * 2 + rng()) * 0.04})`
-    ctx.fillRect(2, wy, 28, 1)
-  }
-
-  for (let i = 0; i < 3; i++) {
-    const rx = 4 + rng() * 20 | 0, ry = 4 + rng() * 20 | 0
-    ctx.fillStyle = `rgba(100,180,255,${0.15 + Math.sin(t * 1.2 + rx) * 0.08})`
-    ctx.fillRect(rx, ry, 4 + rng() * 4 | 0, 2)
-  }
-
-  ctx.fillStyle = `rgba(200,230,255,${0.06 + Math.sin(t * 0.8 + rng() * 20) * 0.03})`
-  for (let i = 0; i < 3; i++) {
-    ctx.fillRect(4 + rng() * 24 | 0, 2 + rng() * 24 | 0, 3, 1)
-  }
-}
-
-function drawStoneTile(ctx: CanvasRenderingContext2D, rng: () => number) {
-  const base = 100 + rng() * 40 | 0
-  ctx.fillStyle = `rgb(${base},${base + 10},${base + 20})`
-  ctx.fillRect(0, 0, 32, 32)
-
-  ctx.fillStyle = `rgb(${base - 20},${base - 10},${base})`
-  for (let i = 0; i < 3; i++) {
-    ctx.fillRect(4 + i * 10 + (rng() * 4 | 0), 6 + i * 8 + (rng() * 4 | 0), 6 + rng() * 4 | 0, 2 + rng() * 2 | 0)
-  }
-
-  const crackLen = 2 + rng() * 3 | 0
-  ctx.strokeStyle = `rgb(${base - 30},${base - 25},${base - 20})`
-  ctx.lineWidth = 1
-  for (let i = 0; i < 4; i++) {
-    const cx = 4 + rng() * 20 | 0, cy = 4 + rng() * 20 | 0
+    const wy = (i * 8 + Math.sin(t * 1.5 + i * 1.5 + rng() * 10) * 3 + 4)
+    ctx.strokeStyle = `rgba(255,255,255,${0.12 + Math.sin(t * 2 + i * 2 + rng()) * 0.04})`
+    ctx.lineWidth = 1.5
     ctx.beginPath()
-    ctx.moveTo(cx, cy)
-    for (let j = 0; j < crackLen; j++) {
-      ctx.lineTo(cx + (rng() * 6 - 3 | 0), cy + 2 + j * 3)
+    for (let x = 2; x <= 30; x += 2) {
+      const yy = wy + Math.sin(x * 0.3 + t * 2 + i) * 1.5
+      if (x === 2) ctx.moveTo(x, yy)
+      else ctx.lineTo(x, yy)
     }
     ctx.stroke()
   }
 
-  ctx.fillStyle = `rgb(${base + 15},${base + 20},${base + 25})`
   for (let i = 0; i < 3; i++) {
-    ctx.fillRect(rng() * 28 | 0, rng() * 28 | 0, 1, 1)
+    const rx = 4 + rng() * 20, ry = 4 + rng() * 20
+    ctx.fillStyle = `rgba(180,220,255,${0.15 + Math.sin(t * 1.2 + rx) * 0.08})`
+    ctx.beginPath()
+    ctx.ellipse(rx, ry, 4 + rng() * 3, 2, 0.2, 0, Math.PI * 2)
+    ctx.fill()
+  }
+}
+
+function drawStoneTile(ctx: CanvasRenderingContext2D, rng: () => number) {
+  const base = 100 + rng() * 40
+  const g = ctx.createRadialGradient(16, 16, 0, 16, 16, 20)
+  g.addColorStop(0, `rgb(${base + 20},${base + 30},${base + 40})`)
+  g.addColorStop(0.5, `rgb(${base},${base + 10},${base + 20})`)
+  g.addColorStop(1, `rgb(${base - 20},${base - 10},${base})`)
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, 32, 32)
+
+  for (let i = 0; i < 3; i++) {
+    const sx = 4 + i * 10 + rng() * 4, sy = 6 + i * 8 + rng() * 4
+    ctx.fillStyle = `rgb(${base - 15},${base - 5},${base + 5})`
+    ctx.beginPath()
+    ctx.ellipse(sx, sy, 4 + rng() * 3, 2 + rng() * 1.5, rng() * 0.3, 0, Math.PI * 2)
+    ctx.fill()
+  }
+
+  for (let i = 0; i < 3; i++) {
+    const cx = 4 + rng() * 20, cy = 4 + rng() * 20
+    ctx.strokeStyle = `rgb(${base - 30},${base - 25},${base - 20})`
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(cx, cy)
+    const steps = 2 + rng() * 3 | 0
+    for (let j = 0; j < steps; j++) {
+      ctx.quadraticCurveTo(cx + rng() * 6 - 3, cy + 3 + j * 3, cx + rng() * 5 - 2.5, cy + 4 + j * 3)
+    }
+    ctx.stroke()
+  }
+
+  for (let i = 0; i < 2; i++) {
+    const mx = 4 + rng() * 24, my = 4 + rng() * 24
+    ctx.fillStyle = `rgb(${50 + rng() * 30 | 0},${80 + rng() * 30 | 0},${30 + rng() * 20 | 0})`
+    ctx.beginPath()
+    ctx.ellipse(mx, my, 3 + rng() * 2, 2 + rng() * 1.5, rng() * 0.5, 0, Math.PI * 2)
+    ctx.fill()
   }
 }
 
 function drawSandTile(ctx: CanvasRenderingContext2D, rng: () => number) {
-  const base = 160 + rng() * 40 | 0
-  ctx.fillStyle = `rgb(${base + 20},${base},${60 + rng() * 30 | 0})`
+  const base = 160 + rng() * 40
+  const g = ctx.createLinearGradient(0, 0, 32, 32)
+  g.addColorStop(0, `rgb(${base + 30},${base + 10},${70 + rng() * 30 | 0})`)
+  g.addColorStop(0.5, `rgb(${base + 20},${base},${60 + rng() * 30 | 0})`)
+  g.addColorStop(1, `rgb(${base},${base - 20},${50 + rng() * 20 | 0})`)
+  ctx.fillStyle = g
   ctx.fillRect(0, 0, 32, 32)
 
-  ctx.fillStyle = `rgb(${base + 10},${base - 10},${50 + rng() * 20 | 0})`
-  for (let i = 0; i < 20; i++) {
-    const sx = rng() * 30 | 0, sy = rng() * 30 | 0
-    ctx.fillRect(sx, sy, 1 + rng() * 2 | 0, 1)
+  for (let i = 0; i < 15; i++) {
+    const sx = rng() * 30, sy = rng() * 30
+    ctx.fillStyle = `rgb(${base + 15},${base - 5},${55 + rng() * 20 | 0})`
+    ctx.beginPath()
+    ctx.arc(sx, sy, 0.8 + rng() * 0.8, 0, Math.PI * 2)
+    ctx.fill()
   }
 
-  ctx.fillStyle = `rgb(${base},${base - 20},${40 + rng() * 15 | 0})`
-  for (let i = 0; i < 8; i++) {
-    ctx.fillRect(rng() * 30 | 0, rng() * 30 | 0, 1, 1)
-  }
-
-  ctx.fillStyle = `rgb(${base + 30},${base + 10},${70 + rng() * 20 | 0})`
   for (let i = 0; i < 3; i++) {
-    const sx = rng() * 26 | 0, sy = rng() * 26 | 0
-    ctx.fillRect(sx, sy, 2 + rng() * 4 | 0, 1)
-    ctx.fillRect(sx, sy + 1, 1 + rng() * 2 | 0, 1)
+    const sx = rng() * 26, sy = rng() * 26
+    ctx.fillStyle = `rgb(${base + 30},${base + 10},${70 + rng() * 20 | 0})`
+    ctx.beginPath()
+    ctx.ellipse(sx, sy, 2 + rng() * 3, 1.5, 0.3, 0, Math.PI * 2)
+    ctx.fill()
   }
 }
 
 function drawLavaTile(ctx: CanvasRenderingContext2D, rng: () => number, t: number) {
   const pulse = Math.sin(t * 1.5 + rng() * 10) * 0.1 + 0.9
-  ctx.fillStyle = `rgb(${200 * pulse | 0},${60 * pulse | 0},${10 * pulse | 0})`
+  const g = ctx.createRadialGradient(16, 16, 0, 16, 16, 22)
+  g.addColorStop(0, `rgb(${230 * pulse | 0},${80 * pulse | 0},${20 * pulse | 0})`)
+  g.addColorStop(0.5, `rgb(${200 * pulse | 0},${60 * pulse | 0},${10 * pulse | 0})`)
+  g.addColorStop(1, `rgb(${150 * pulse | 0},${30 * pulse | 0},${5 * pulse | 0})`)
+  ctx.fillStyle = g
   ctx.fillRect(0, 0, 32, 32)
 
+  ctx.shadowColor = `rgba(255,150,50,0.4)`
+  ctx.shadowBlur = 6
+
   for (let i = 0; i < 3; i++) {
-    const ly = (i * 10 + Math.sin(t * 2 + i * 2 + rng() * 10) * 4 + 5) | 0
+    const ly = (i * 10 + Math.sin(t * 2 + i * 2 + rng() * 10) * 4 + 5)
     const bright = 0.3 + Math.sin(t * 1.5 + i * 1.5 + rng() * 8) * 0.15
-    ctx.fillStyle = `rgba(255,200,50,${bright})`
-    ctx.fillRect(2, ly, 28, 2)
+    ctx.fillStyle = `rgba(255,200,80,${bright})`
+    ctx.beginPath()
+    ctx.moveTo(2, ly)
+    for (let x = 2; x <= 30; x += 2) {
+      const yy = ly + Math.sin(x * 0.4 + t * 3 + i * 2) * 2
+      ctx.lineTo(x, yy)
+    }
+    ctx.lineTo(30, ly + 2)
+    for (let x = 30; x >= 2; x -= 2) {
+      const yy = ly + Math.sin(x * 0.4 + t * 3 + i * 2) * 2 + 2
+      ctx.lineTo(x, yy)
+    }
+    ctx.closePath()
+    ctx.fill()
   }
 
-  for (let i = 0; i < 4; i++) {
-    const sx = 3 + rng() * 24 | 0, sy = 3 + rng() * 24 | 0
-    const glow = 0.2 + Math.sin(t * 0.8 + sx + sy) * 0.1
-    ctx.fillStyle = `rgba(255,150,50,${glow})`
-    ctx.fillRect(sx, sy, 2, 2)
-  }
-
-  ctx.fillStyle = `rgba(255,120,30,${0.1 + Math.sin(t * 1.2 + rng() * 15) * 0.05})`
-  for (let i = 0; i < 3; i++) {
-    ctx.fillRect(3 + rng() * 26 | 0, 3 + rng() * 26 | 0, 3, 1)
-  }
+  ctx.shadowBlur = 0
 }
 
 function drawSnowTile(ctx: CanvasRenderingContext2D, rng: () => number) {
-  const base = 220 + rng() * 35 | 0
-  ctx.fillStyle = `rgb(${base},${base},${base + 10})`
+  const base = 220 + rng() * 35
+  const g = ctx.createLinearGradient(0, 0, 0, 32)
+  g.addColorStop(0, `rgb(${base + 10},${base + 10},${base + 20})`)
+  g.addColorStop(0.5, `rgb(${base},${base},${base + 10})`)
+  g.addColorStop(1, `rgb(${base - 15},${base - 15},${base - 5})`)
+  ctx.fillStyle = g
   ctx.fillRect(0, 0, 32, 32)
 
-  ctx.fillStyle = `rgb(${base - 10},${base - 10},${base})`
-  for (let i = 0; i < 8; i++) {
-    ctx.fillRect(rng() * 28 | 0, rng() * 28 | 0, 1 + rng() * 3 | 0, 1)
+  for (let i = 0; i < 6; i++) {
+    const sx = rng() * 28, sy = rng() * 28
+    ctx.fillStyle = `rgb(${235 + rng() * 20 | 0},${235 + rng() * 20 | 0},${250 + rng() * 5 | 0})`
+    ctx.beginPath()
+    ctx.arc(sx, sy, 1 + rng() * 1.5, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = `rgba(255,255,255,0.5)`
+    ctx.beginPath()
+    ctx.arc(sx + 0.5, sy + 0.5, 0.6, 0, Math.PI * 2)
+    ctx.fill()
   }
 
-  for (let i = 0; i < 5; i++) {
-    const sx = rng() * 28 | 0, sy = rng() * 28 | 0
-    ctx.fillStyle = `rgb(${230 + rng() * 25 | 0},${230 + rng() * 25 | 0},${250 + rng() * 5 | 0})`
-    ctx.fillRect(sx, sy, 2, 2)
-    ctx.fillStyle = `rgba(255,255,255,0.4)`
-    ctx.fillRect(sx + 1, sy + 1, 1, 1)
-  }
-
-  ctx.fillStyle = `rgba(200,220,255,0.15)`
-  for (let i = 0; i < 4; i++) {
-    ctx.fillRect(rng() * 28 | 0, rng() * 28 | 0, 2 + rng() * 3 | 0, 1)
+  ctx.fillStyle = `rgba(200,220,255,0.12)`
+  for (let i = 0; i < 3; i++) {
+    const sx = rng() * 26, sy = rng() * 26
+    ctx.beginPath()
+    ctx.ellipse(sx, sy, 2 + rng() * 2, 1, 0.2, 0, Math.PI * 2)
+    ctx.fill()
   }
 }
 
@@ -219,6 +260,8 @@ export function drawEntitySprite(
 ) {
   ctx.save()
   ctx.translate(x, y)
+  ctx.shadowColor = 'rgba(0,0,0,0.3)'
+  ctx.shadowBlur = 4
 
   const t = time / 1000
   const bobOffset = bob !== 0 ? Math.sin(t * 3 + x) * bob : 0
@@ -227,6 +270,8 @@ export function drawEntitySprite(
   const blinkCycle = Math.sin(t * 4.7) > 0.95 ? 0 : 1
   const idleBob = Math.sin(t * 2.3) * 0.5
 
+  ctx.shadowBlur = 0
+  ctx.shadowColor = 'transparent'
   ctx.fillStyle = 'rgba(0,0,0,0.25)'
   ctx.beginPath()
   ctx.ellipse(0, 15, 13, 5, 0, 0, Math.PI * 2)
@@ -235,6 +280,7 @@ export function drawEntitySprite(
   ctx.translate(0, bobOffset)
 
   function drawEye(sx: number, sy: number, open: number, color = '#1e293b') {
+    ctx.shadowBlur = 0
     ctx.fillStyle = '#f8fafc'
     ctx.beginPath()
     ctx.ellipse(sx, sy, 3.5 * open, 3.5, 0, 0, Math.PI * 2)
@@ -304,57 +350,6 @@ export function drawEntitySprite(
     ctx.fill()
   }
 
-  function drawArmorPlate(sx: number, sy: number, w: number, h: number, color: string, highlight: string) {
-    ctx.fillStyle = color
-    ctx.beginPath()
-    ctx.moveTo(sx, sy)
-    ctx.lineTo(sx + w, sy)
-    ctx.lineTo(sx + w - 2, sy + h)
-    ctx.lineTo(sx + 2, sy + h)
-    ctx.closePath()
-    ctx.fill()
-    ctx.fillStyle = highlight
-    ctx.beginPath()
-    ctx.moveTo(sx + 2, sy + 2)
-    ctx.lineTo(sx + w - 4, sy + 2)
-    ctx.lineTo(sx + w - 4, sy + h - 2)
-    ctx.lineTo(sx + 2, sy + h - 2)
-    ctx.closePath()
-    ctx.fill()
-  }
-
-  function drawBoot(sx: number, sy: number, w: number, h: number, color: string) {
-    ctx.fillStyle = color
-    ctx.beginPath()
-    ctx.moveTo(sx, sy)
-    ctx.lineTo(sx + w, sy)
-    ctx.lineTo(sx + w + 1, sy + h)
-    ctx.lineTo(sx - 1, sy + h)
-    ctx.closePath()
-    ctx.fill()
-  }
-
-  function drawSkirt(sx: number, sy: number, w: number, h: number, color: string, wave: number) {
-    ctx.fillStyle = color
-    ctx.beginPath()
-    ctx.moveTo(sx - w / 2, sy)
-    for (let i = 0; i <= 6; i++) {
-      const px = sx - w / 2 + (w * i) / 6
-      const wx = Math.sin(t * 3 + i * 1.2) * wave
-      ctx.lineTo(px, sy + h + wx)
-    }
-    ctx.closePath()
-    ctx.fill()
-  }
-
-  function drawHair(sx: number, sy: number, w: number, h: number, color: string) {
-    ctx.fillStyle = color
-    ctx.beginPath()
-    ctx.ellipse(sx, sy - h * 0.3, w / 2 + 1, h * 0.7, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.fillRect(sx - w / 2, sy - h * 0.7, w, h * 0.5)
-  }
-
   function drawBeard(sx: number, sy: number, w: number, h: number, color: string) {
     ctx.fillStyle = color
     ctx.beginPath()
@@ -386,6 +381,17 @@ export function drawEntitySprite(
     ctx.globalAlpha = 1
   }
 
+  function drawBoot(sx: number, sy: number, w: number, h: number, color: string) {
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.moveTo(sx, sy)
+    ctx.lineTo(sx + w, sy)
+    ctx.lineTo(sx + w + 1, sy + h)
+    ctx.lineTo(sx - 1, sy + h)
+    ctx.closePath()
+    ctx.fill()
+  }
+
   function drawGoblinEar(sx: number, sy: number, flip: number) {
     ctx.fillStyle = '#16a34a'
     ctx.beginPath()
@@ -406,37 +412,146 @@ export function drawEntitySprite(
     ctx.fill()
   }
 
+  function drawLegs(sx: number, sy: number, w: number, h: number, color: string, wc: number) {
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.moveTo(sx - w / 2, sy + wc * -1)
+    ctx.quadraticCurveTo(sx - w / 2, sy + h + wc * -1, sx + w / 2, sy + h + wc * -1)
+    ctx.quadraticCurveTo(sx + w / 2, sy + wc * -1, sx - w / 2, sy + wc * -1)
+    ctx.fill()
+    ctx.beginPath()
+    ctx.moveTo(sx + w + 2, sy + wc)
+    ctx.quadraticCurveTo(sx + w + 2, sy + h + wc, sx + w + w / 2 + 2, sy + h + wc)
+    ctx.quadraticCurveTo(sx + w + w / 2 + 2, sy + wc, sx + w + 2, sy + wc)
+    ctx.fill()
+  }
+
+  function drawArm(sx: number, sy: number, len: number, angle: number, color: string, w: number = 3) {
+    ctx.strokeStyle = color
+    ctx.lineWidth = w
+    ctx.lineCap = 'round'
+    ctx.beginPath()
+    ctx.moveTo(sx, sy)
+    ctx.quadraticCurveTo(sx + Math.cos(angle) * len * 0.5, sy + Math.sin(angle) * len * 0.5 - 2, sx + Math.cos(angle) * len, sy + Math.sin(angle) * len)
+    ctx.stroke()
+  }
+
+  function drawBodyTorso(sx: number, sy: number, w: number, h: number, color: string) {
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.moveTo(sx - w / 2, sy)
+    ctx.quadraticCurveTo(sx - w / 2 - 2, sy + h * 0.3, sx - w / 2 + 1, sy + h * 0.6)
+    ctx.quadraticCurveTo(sx, sy + h, sx + w / 2 - 1, sy + h * 0.6)
+    ctx.quadraticCurveTo(sx + w / 2 + 2, sy + h * 0.3, sx + w / 2, sy)
+    ctx.closePath()
+    ctx.fill()
+  }
+
+  function drawHatCone(sx: number, sy: number, w: number, h: number, color: string) {
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.moveTo(sx - w / 2, sy)
+    ctx.quadraticCurveTo(sx - w / 4, sy - h * 0.7, sx, sy - h)
+    ctx.quadraticCurveTo(sx + w / 4, sy - h * 0.7, sx + w / 2, sy)
+    ctx.closePath()
+    ctx.fill()
+  }
+
   if (type === 'player') {
     const wc = walkCycle
     const capeWave = Math.sin(t * 2.5 + x * 0.01) * 2.5
     const blink = blinkCycle
 
+    ctx.shadowColor = 'rgba(91,33,182,0.3)'
+    ctx.shadowBlur = 6
     drawCape(0, -3, 24, 16, '#5b21b6', capeWave)
+    ctx.shadowBlur = 0
 
-    ctx.fillStyle = '#1e0a3c'
-    ctx.fillRect(-10, 8 + wc * -1, 8, 5)
-    ctx.fillRect(2, 8 + wc, 8, 5)
+    ctx.shadowColor = 'rgba(0,0,0,0.2)'
+    ctx.shadowBlur = 3
+
+    const legColor = '#1e0a3c'
+    ctx.fillStyle = legColor
+    ctx.beginPath()
+    ctx.moveTo(-7, 8 + wc * -1)
+    ctx.quadraticCurveTo(-6, 15 + wc * -1, -3, 15 + wc * -1)
+    ctx.quadraticCurveTo(0, 15 + wc * -1, 1, 8 + wc * -1)
+    ctx.closePath()
+    ctx.fill()
+    ctx.beginPath()
+    ctx.moveTo(5, 8 + wc)
+    ctx.quadraticCurveTo(6, 15 + wc, 9, 15 + wc)
+    ctx.quadraticCurveTo(12, 15 + wc, 13, 8 + wc)
+    ctx.closePath()
+    ctx.fill()
 
     drawBoot(-10, 12 + wc * -1, 8, 4, '#1e0a3c')
     drawBoot(2, 12 + wc, 8, 4, '#1e0a3c')
 
-    ctx.fillStyle = '#4c1d95'
-    ctx.fillRect(-9, 6 + wc * -1, 18, 4)
-    drawSkirt(0, 7, 18, 7, '#4c1d95', 1.5)
+    const skirtGrad = ctx.createLinearGradient(0, 7, 0, 14)
+    skirtGrad.addColorStop(0, '#6d28d9')
+    skirtGrad.addColorStop(1, '#4c1d95')
+    ctx.fillStyle = skirtGrad
+    ctx.beginPath()
+    ctx.moveTo(-9, 6 + wc * -1)
+    for (let i = 0; i <= 8; i++) {
+      const px = -9 + (18 * i) / 8
+      const wx = Math.sin(t * 3 + i * 1.2) * 1.5
+      ctx.lineTo(px, 13 + wx)
+    }
+    ctx.closePath()
+    ctx.fill()
 
-    drawArmorPlate(-8, -3, 16, 10, '#7c3aed', '#a855f7')
+    const armorGrad = ctx.createLinearGradient(-8, -3, 8, 7)
+    armorGrad.addColorStop(0, '#8b5cf6')
+    armorGrad.addColorStop(0.4, '#7c3aed')
+    armorGrad.addColorStop(0.7, '#6d28d9')
+    armorGrad.addColorStop(1, '#5b21b6')
+    ctx.fillStyle = armorGrad
+    ctx.beginPath()
+    ctx.moveTo(-8, -3)
+    ctx.quadraticCurveTo(-10, 2, -8, 7)
+    ctx.quadraticCurveTo(0, 9, 8, 7)
+    ctx.quadraticCurveTo(10, 2, 8, -3)
+    ctx.closePath()
+    ctx.fill()
 
-    ctx.fillStyle = '#fbbf24'
-    ctx.fillRect(-5, 6, 10, 1.5)
+    ctx.shadowBlur = 0
 
-    ctx.fillStyle = '#a855f7'
-    ctx.fillRect(-10, -1, 3, 8)
-    ctx.fillRect(7, -1, 3, 8)
+    const beltGrad = ctx.createLinearGradient(-5, 6, 5, 7.5)
+    beltGrad.addColorStop(0, '#f59e0b')
+    beltGrad.addColorStop(0.5, '#fbbf24')
+    beltGrad.addColorStop(1, '#d97706')
+    ctx.fillStyle = beltGrad
+    ctx.beginPath()
+    ctx.moveTo(-5, 6)
+    ctx.quadraticCurveTo(0, 7.5, 5, 6)
+    ctx.quadraticCurveTo(4, 7, 0, 7.5)
+    ctx.quadraticCurveTo(-4, 7, -5, 6)
+    ctx.fill()
 
+    const armColor = '#a855f7'
+    ctx.strokeStyle = armColor
+    ctx.lineWidth = 3
+    ctx.lineCap = 'round'
+    ctx.beginPath()
+    ctx.moveTo(-9, -1)
+    ctx.quadraticCurveTo(-13, 2, -12, 7)
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(9, -1)
+    ctx.quadraticCurveTo(13, 2, 12, 7)
+    ctx.stroke()
     ctx.fillStyle = '#f8fafc'
-    ctx.fillRect(-10, 2, 3, 2)
-    ctx.fillRect(7, 2, 3, 2)
+    ctx.beginPath()
+    ctx.ellipse(-10, 2, 1.5, 2, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.beginPath()
+    ctx.ellipse(10, 2, 1.5, 2, 0, 0, Math.PI * 2)
+    ctx.fill()
 
+    ctx.shadowColor = 'rgba(0,0,0,0.15)'
+    ctx.shadowBlur = 4
     ctx.fillStyle = '#f8fafc'
     ctx.beginPath()
     ctx.ellipse(-8, 7, 2, 2.5, 0, 0, Math.PI * 2)
@@ -445,15 +560,30 @@ export function drawEntitySprite(
     ctx.ellipse(8, 7, 2, 2.5, 0, 0, Math.PI * 2)
     ctx.fill()
 
-    ctx.fillStyle = '#fde68a'
+    const skinGrad = ctx.createRadialGradient(0, -14, 0, 0, -12, 9)
+    skinGrad.addColorStop(0, '#fef3c7')
+    skinGrad.addColorStop(0.5, '#fde68a')
+    skinGrad.addColorStop(1, '#fcd34d')
+    ctx.fillStyle = skinGrad
     ctx.beginPath()
     ctx.ellipse(0, -12, 7.5, 8.5, 0, 0, Math.PI * 2)
     ctx.fill()
 
-    drawHair(0, -12, 15, 7, '#2d1b69')
-    ctx.fillStyle = '#2d1b69'
-    ctx.fillRect(-4, -20, 8, 3)
-    ctx.fillRect(-7, -18, 14, 3)
+    ctx.shadowBlur = 0
+
+    const hairGrad = ctx.createLinearGradient(-7, -19, 7, -10)
+    hairGrad.addColorStop(0, '#3b1f8e')
+    hairGrad.addColorStop(0.5, '#2d1b69')
+    hairGrad.addColorStop(1, '#1e0a3c')
+    ctx.fillStyle = hairGrad
+    ctx.beginPath()
+    ctx.moveTo(-7, -12)
+    ctx.quadraticCurveTo(-10, -17, -5, -20)
+    ctx.quadraticCurveTo(0, -22, 5, -20)
+    ctx.quadraticCurveTo(10, -17, 7, -12)
+    ctx.quadraticCurveTo(5, -16, 0, -17)
+    ctx.quadraticCurveTo(-5, -16, -7, -12)
+    ctx.fill()
 
     drawEar(-8, -11, '#fde68a')
     drawEar(8, -11, '#fde68a')
@@ -466,12 +596,20 @@ export function drawEntitySprite(
     drawMouth(0, -8.5, 2.5)
 
     ctx.fillStyle = '#c084fc'
-    ctx.fillRect(-1, -10, 2, 2)
+    ctx.beginPath()
+    ctx.arc(-1, -10, 1, 0, Math.PI * 2)
+    ctx.fill()
 
     ctx.fillStyle = '#fbbf24'
-    ctx.fillRect(-9, -2, 2, 2)
-    ctx.fillRect(7, -2, 2, 2)
+    ctx.beginPath()
+    ctx.arc(-9, -2, 1.2, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.beginPath()
+    ctx.arc(7, -2, 1.2, 0, Math.PI * 2)
+    ctx.fill()
 
+    ctx.shadowColor = 'rgba(168,85,247,0.4)'
+    ctx.shadowBlur = 5
     ctx.strokeStyle = '#a855f7'
     ctx.lineWidth = 1.5
     ctx.beginPath()
@@ -480,12 +618,23 @@ export function drawEntitySprite(
     ctx.lineTo(18, -8)
     ctx.lineTo(13, 0)
     ctx.closePath()
-    ctx.fillStyle = '#e2e8f0'
+    const swordGrad = ctx.createLinearGradient(11, -2, 18, -8)
+    swordGrad.addColorStop(0, '#e2e8f0')
+    swordGrad.addColorStop(0.5, '#f8fafc')
+    swordGrad.addColorStop(1, '#94a3b8')
+    ctx.fillStyle = swordGrad
     ctx.fill()
 
+    ctx.shadowBlur = 0
     ctx.fillStyle = '#94a3b8'
-    ctx.fillRect(13, -12, 1.5, 6)
+    ctx.beginPath()
+    ctx.moveTo(13, -12)
+    ctx.quadraticCurveTo(14, -9, 13, -6)
+    ctx.quadraticCurveTo(12.5, -9, 13, -12)
+    ctx.fill()
 
+    ctx.shadowColor = 'rgba(251,191,36,0.5)'
+    ctx.shadowBlur = 6
     ctx.fillStyle = '#fbbf24'
     ctx.beginPath()
     ctx.arc(13, -13, 2.5, 0, Math.PI * 2)
@@ -494,20 +643,32 @@ export function drawEntitySprite(
     ctx.beginPath()
     ctx.arc(13, -13, 1.2, 0, Math.PI * 2)
     ctx.fill()
+    ctx.shadowBlur = 0
 
     ctx.fillStyle = '#6d28d9'
-    ctx.fillRect(12, -6, 4, 2)
-    ctx.fillStyle = '#fbbf24'
-    ctx.fillRect(11, -2, 1.5, 1)
+    ctx.beginPath()
+    ctx.moveTo(12, -6)
+    ctx.quadraticCurveTo(14, -5, 16, -6)
+    ctx.quadraticCurveTo(14, -4.5, 12, -6)
+    ctx.fill()
 
+    ctx.fillStyle = '#fbbf24'
+    ctx.beginPath()
+    ctx.arc(11.5, -1.5, 0.8, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.shadowColor = 'rgba(71,85,105,0.4)'
+    ctx.shadowBlur = 4
     ctx.strokeStyle = '#475569'
     ctx.lineWidth = 3
+    ctx.lineCap = 'round'
     ctx.beginPath()
     ctx.moveTo(-15, -2)
     ctx.lineTo(-15, 4)
     ctx.lineTo(-13, 7)
     ctx.stroke()
 
+    ctx.shadowBlur = 0
     ctx.fillStyle = '#334155'
     ctx.beginPath()
     ctx.moveTo(-16, -3)
@@ -517,15 +678,18 @@ export function drawEntitySprite(
     ctx.closePath()
     ctx.fill()
 
-    ctx.fillStyle = '#fbbf24'
+    const shieldGrad = ctx.createRadialGradient(-13.5, -1.5, 0.5, -13.5, -1.5, 2)
+    shieldGrad.addColorStop(0, '#fef3c7')
+    shieldGrad.addColorStop(0.5, '#fbbf24')
+    shieldGrad.addColorStop(1, '#d97706')
+    ctx.fillStyle = shieldGrad
     ctx.beginPath()
-    ctx.arc(-13.5, -1.5, 1.5, 0, Math.PI * 2)
+    ctx.arc(-13.5, -1.5, 1.8, 0, Math.PI * 2)
     ctx.fill()
 
   } else if (type === 'npc') {
     const wc = walkCycle
     const blink = blinkCycle
-    const skin = '#fde68a'
 
     const npcConfig: Record<string, {
       torso: string; pants: string; hat: string; hat2: string;
@@ -539,32 +703,49 @@ export function drawEntitySprite(
     }
     const c = npcConfig[name] || npcConfig.Merchant
 
-    ctx.fillStyle = c.pants
-    ctx.fillRect(-8, 5 + wc * -1, 7, 8)
-    ctx.fillRect(1, 5 + wc, 7, 8)
+    ctx.shadowColor = 'rgba(0,0,0,0.2)'
+    ctx.shadowBlur = 3
 
-    ctx.fillStyle = c.shoes
-    ctx.fillRect(-9, 12 + wc * -1, 8, 3)
-    ctx.fillRect(0, 12 + wc, 8, 3)
+    drawLegs(0, 5, 6, 8, c.pants, wc)
 
-    ctx.fillStyle = c.torso
+    drawBoot(-9, 12 + wc * -1, 8, 3, c.shoes)
+    drawBoot(0, 12 + wc, 8, 3, c.shoes)
+
+    const torsoGrad = ctx.createLinearGradient(-8, -2, 8, 7)
+    torsoGrad.addColorStop(0, c.torso)
+    torsoGrad.addColorStop(0.6, c.torso)
+    torsoGrad.addColorStop(1, c.pants)
+    ctx.fillStyle = torsoGrad
     ctx.beginPath()
     ctx.moveTo(-8, -2)
-    ctx.lineTo(8, -2)
-    ctx.lineTo(9, 7)
-    ctx.lineTo(-9, 7)
+    ctx.quadraticCurveTo(-10, 2, -9, 7)
+    ctx.quadraticCurveTo(0, 9, 9, 7)
+    ctx.quadraticCurveTo(10, 2, 8, -2)
     ctx.closePath()
     ctx.fill()
 
     if (name === 'Guard') {
       ctx.fillStyle = '#1e3a8a'
-      ctx.fillRect(-9, -2, 18, 2)
+      ctx.beginPath()
+      ctx.moveTo(-9, -2)
+      ctx.quadraticCurveTo(0, 0, 9, -2)
+      ctx.quadraticCurveTo(0, -1, -9, -2)
+      ctx.fill()
     }
 
     ctx.fillStyle = c.accent
-    ctx.fillRect(-2, 1, 4, 4)
+    ctx.beginPath()
+    ctx.moveTo(-2, 1)
+    ctx.quadraticCurveTo(0, 5, 2, 1)
+    ctx.quadraticCurveTo(0, 3, -2, 1)
+    ctx.fill()
 
-    ctx.fillStyle = skin
+    ctx.shadowBlur = 0
+
+    const npcSkinGrad = ctx.createRadialGradient(0, -12, 0, 0, -10, 7.5)
+    npcSkinGrad.addColorStop(0, '#fef3c7')
+    npcSkinGrad.addColorStop(1, '#fde68a')
+    ctx.fillStyle = npcSkinGrad
     ctx.beginPath()
     ctx.ellipse(0, -10, 6.5, 7.5, 0, 0, Math.PI * 2)
     ctx.fill()
@@ -584,29 +765,40 @@ export function drawEntitySprite(
     }
     if (name === 'Guard') {
       ctx.fillStyle = '#475569'
-      ctx.fillRect(-6, -18, 12, 3)
-      ctx.fillRect(-5, -19, 10, 2)
-      ctx.fillRect(-8, -16, 16, 2)
-      ctx.fillStyle = '#ef4444'
-      ctx.fillRect(-1, -21, 2, 4)
-      ctx.fillRect(-8, -16, 4, 1)
-      ctx.fillRect(4, -16, 4, 1)
-    } else if (name === 'Merchant') {
-      ctx.fillStyle = c.hat2
       ctx.beginPath()
-      ctx.moveTo(-6, -16)
-      ctx.lineTo(6, -16)
-      ctx.lineTo(8, -8)
-      ctx.lineTo(-8, -8)
-      ctx.closePath()
+      ctx.moveTo(-6, -18)
+      ctx.quadraticCurveTo(0, -19, 6, -18)
+      ctx.quadraticCurveTo(0, -17, -6, -18)
       ctx.fill()
+      ctx.beginPath()
+      ctx.moveTo(-5, -19)
+      ctx.quadraticCurveTo(0, -20, 5, -19)
+      ctx.quadraticCurveTo(0, -18, -5, -19)
+      ctx.fill()
+      ctx.fillStyle = '#475569'
+      ctx.beginPath()
+      ctx.moveTo(-8, -16)
+      ctx.quadraticCurveTo(0, -15, 8, -16)
+      ctx.quadraticCurveTo(0, -17, -8, -16)
+      ctx.fill()
+      ctx.fillStyle = '#ef4444'
+      ctx.beginPath()
+      ctx.moveTo(-1, -21)
+      ctx.quadraticCurveTo(0, -17, 1, -21)
+      ctx.quadraticCurveTo(0, -18, -1, -21)
+      ctx.fill()
+      ctx.fillStyle = '#ef4444'
+      ctx.beginPath()
+      ctx.ellipse(-6, -15.5, 2, 0.6, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(6, -15.5, 2, 0.6, 0, 0, Math.PI * 2)
+      ctx.fill()
+    } else if (name === 'Merchant') {
+      drawHatCone(0, -12, 16, 8, c.hat2)
       ctx.fillStyle = c.hat
       ctx.beginPath()
-      ctx.moveTo(-9, -9)
-      ctx.lineTo(9, -9)
-      ctx.lineTo(7, -12)
-      ctx.lineTo(-7, -12)
-      ctx.closePath()
+      ctx.ellipse(0, -9, 9, 2, 0, 0, Math.PI * 2)
       ctx.fill()
       ctx.fillStyle = '#fbbf24'
       ctx.beginPath()
@@ -616,20 +808,40 @@ export function drawEntitySprite(
       ctx.fillStyle = c.hat
       ctx.beginPath()
       ctx.moveTo(-8, -15)
-      ctx.lineTo(8, -15)
-      ctx.lineTo(6, -9)
-      ctx.lineTo(-6, -9)
-      ctx.closePath()
+      ctx.quadraticCurveTo(0, -16, 8, -15)
+      ctx.quadraticCurveTo(7, -11, 6, -9)
+      ctx.quadraticCurveTo(0, -11, -6, -9)
+      ctx.quadraticCurveTo(-7, -11, -8, -15)
       ctx.fill()
       ctx.fillStyle = c.hat2
-      ctx.fillRect(-6, -19, 12, 5)
-      ctx.fillRect(-4, -21, 8, 3)
+      ctx.beginPath()
+      ctx.moveTo(-6, -19)
+      ctx.quadraticCurveTo(0, -20, 6, -19)
+      ctx.quadraticCurveTo(0, -18, -6, -19)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.moveTo(-4, -21)
+      ctx.quadraticCurveTo(0, -22, 4, -21)
+      ctx.quadraticCurveTo(0, -20, -4, -21)
+      ctx.fill()
     } else if (name === 'Blacksmith') {
       ctx.fillStyle = c.hat
-      ctx.fillRect(-7, -16, 14, 3)
-      ctx.fillRect(-5, -19, 10, 4)
+      ctx.beginPath()
+      ctx.moveTo(-7, -16)
+      ctx.quadraticCurveTo(0, -17, 7, -16)
+      ctx.quadraticCurveTo(0, -15, -7, -16)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.moveTo(-5, -19)
+      ctx.quadraticCurveTo(0, -21, 5, -19)
+      ctx.quadraticCurveTo(0, -18, -5, -19)
+      ctx.fill()
       ctx.fillStyle = c.hat2
-      ctx.fillRect(-5, -20, 10, 2)
+      ctx.beginPath()
+      ctx.moveTo(-5, -20)
+      ctx.quadraticCurveTo(0, -21, 5, -20)
+      ctx.quadraticCurveTo(0, -19, -5, -20)
+      ctx.fill()
       ctx.fillStyle = '#1e1b1b'
       ctx.beginPath()
       ctx.arc(5, -10, 2.5, 0, Math.PI * 2)
@@ -639,30 +851,63 @@ export function drawEntitySprite(
       ctx.arc(5, -10, 1, 0, Math.PI * 2)
       ctx.fill()
       ctx.fillStyle = '#64748b'
-      ctx.fillRect(9, -1, 4, 9)
+      ctx.beginPath()
+      ctx.moveTo(9, -1)
+      ctx.quadraticCurveTo(11, 4, 10, 8)
+      ctx.quadraticCurveTo(13, 4, 9, -1)
+      ctx.fill()
       ctx.fillStyle = '#94a3b8'
-      ctx.fillRect(10, -2, 2, 2)
+      ctx.beginPath()
+      ctx.arc(10.5, -1, 1.5, 0, Math.PI * 2)
+      ctx.fill()
       ctx.fillStyle = '#f97316'
-      ctx.fillRect(9, 8, 4, 3)
+      ctx.beginPath()
+      ctx.moveTo(9, 8)
+      ctx.quadraticCurveTo(11, 10, 13, 8)
+      ctx.quadraticCurveTo(11, 11, 9, 8)
+      ctx.fill()
       ctx.fillStyle = '#292524'
-      ctx.fillRect(8, 0, 2, 7)
+      ctx.beginPath()
+      ctx.moveTo(8, 0)
+      ctx.quadraticCurveTo(10, 4, 9, 7)
+      ctx.quadraticCurveTo(8, 4, 8, 0)
+      ctx.fill()
     } else if (name === 'Farmer') {
       ctx.fillStyle = c.hat
       ctx.beginPath()
       ctx.ellipse(0, -17, 7, 2.5, 0, 0, Math.PI * 2)
       ctx.fill()
       ctx.fillStyle = c.hat2
-      ctx.fillRect(-5, -23, 10, 6)
-      ctx.fillRect(-3, -24, 6, 2)
+      ctx.beginPath()
+      ctx.moveTo(-5, -23)
+      ctx.quadraticCurveTo(0, -25, 5, -23)
+      ctx.quadraticCurveTo(0, -19, -5, -23)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.moveTo(-3, -24)
+      ctx.quadraticCurveTo(0, -25, 3, -24)
+      ctx.quadraticCurveTo(0, -23, -3, -24)
+      ctx.fill()
       ctx.fillStyle = '#65a30d'
-      ctx.fillRect(-13, 1, 4, 8)
+      ctx.beginPath()
+      ctx.moveTo(-13, 1)
+      ctx.quadraticCurveTo(-11, 5, -9, 9)
+      ctx.quadraticCurveTo(-13, 5, -13, 1)
+      ctx.fill()
       ctx.fillStyle = '#4d7c0f'
-      ctx.fillRect(-14, 0, 6, 2)
+      ctx.beginPath()
+      ctx.moveTo(-14, 0)
+      ctx.quadraticCurveTo(-11, 1, -8, 0)
+      ctx.quadraticCurveTo(-11, 2, -14, 0)
+      ctx.fill()
     }
 
     if (name === 'Guard') {
+      ctx.shadowColor = 'rgba(148,163,184,0.3)'
+      ctx.shadowBlur = 3
       ctx.strokeStyle = '#94a3b8'
       ctx.lineWidth = 2.5
+      ctx.lineCap = 'round'
       ctx.beginPath()
       ctx.moveTo(-15, -1)
       ctx.lineTo(-15, 8)
@@ -678,16 +923,25 @@ export function drawEntitySprite(
       ctx.fillStyle = '#cbd5e1'
       ctx.beginPath()
       ctx.moveTo(-13, 7)
-      ctx.lineTo(-17, 7)
-      ctx.lineTo(-16, 10)
-      ctx.lineTo(-14, 10)
-      ctx.closePath()
+      ctx.quadraticCurveTo(-15, 9, -17, 7)
+      ctx.quadraticCurveTo(-15, 10, -13, 7)
       ctx.fill()
+      ctx.shadowBlur = 0
     } else if (name === 'Elder') {
       ctx.fillStyle = '#8B5E3C'
-      ctx.fillRect(-1, -2, 2, 10)
+      ctx.beginPath()
+      ctx.moveTo(-1, -2)
+      ctx.quadraticCurveTo(0, 8, 1, -2)
+      ctx.quadraticCurveTo(0, 3, -1, -2)
+      ctx.fill()
       ctx.fillStyle = '#6b4226'
-      ctx.fillRect(-2, -3, 4, 2)
+      ctx.beginPath()
+      ctx.moveTo(-2, -3)
+      ctx.quadraticCurveTo(0, -1, 2, -3)
+      ctx.quadraticCurveTo(0, -2, -2, -3)
+      ctx.fill()
+      ctx.shadowColor = 'rgba(239,68,68,0.5)'
+      ctx.shadowBlur = 6
       ctx.fillStyle = '#ef4444'
       ctx.beginPath()
       ctx.arc(0, -5, 2, 0, Math.PI * 2)
@@ -700,16 +954,21 @@ export function drawEntitySprite(
       ctx.beginPath()
       ctx.arc(0, -5, 0.5, 0, Math.PI * 2)
       ctx.fill()
+      ctx.shadowBlur = 0
     } else if (name === 'Merchant') {
       ctx.fillStyle = '#78350f'
-      ctx.fillRect(-3, 2, 6, 3)
+      ctx.beginPath()
+      ctx.moveTo(-3, 2)
+      ctx.quadraticCurveTo(0, 5, 3, 2)
+      ctx.quadraticCurveTo(0, 3, -3, 2)
+      ctx.fill()
       ctx.fillStyle = '#0f766e'
-      ctx.fillRect(-4, 2, 8, 1)
+      ctx.beginPath()
+      ctx.moveTo(-4, 2)
+      ctx.quadraticCurveTo(0, 3, 4, 2)
+      ctx.quadraticCurveTo(0, 2.5, -4, 2)
+      ctx.fill()
     }
-
-    ctx.fillStyle = c.pants
-    ctx.fillRect(-6, 12 + wc * -1, 4, 4)
-    ctx.fillRect(2, 12 + wc, 4, 4)
 
   } else if (type === 'enemy') {
     const ec: Record<string, { skin: string; torso: string; eye: string; size: number }> = {
@@ -722,11 +981,11 @@ export function drawEntitySprite(
     const e = ec[name] || ec.Bandit
     const s = e.size
     const wc = walkCycle * 1.5
-    const idle = Math.sin(t * 2.3) * 1.5 * s
     const blink = blinkCycle
 
     ctx.translate(0, -(s - 1) * 8)
 
+    ctx.shadowBlur = 0
     ctx.fillStyle = 'rgba(0,0,0,0.2)'
     ctx.beginPath()
     ctx.ellipse(0, 15 * s, 12 * s, 4 * s, 0, 0, Math.PI * 2)
@@ -735,21 +994,41 @@ export function drawEntitySprite(
     if (name === 'Bandit') {
       const by = Math.sin(t * 2.3) * 0.8
 
-      ctx.fillStyle = '#6B4914'
-      ctx.fillRect(-8 * s, 4 * s + wc * -1 + by, 7 * s, 8 * s)
-      ctx.fillRect(1 * s, 4 * s + wc + by, 7 * s, 8 * s)
+      ctx.shadowColor = 'rgba(0,0,0,0.2)'
+      ctx.shadowBlur = 3
 
-      ctx.fillStyle = '#78350f'
-      ctx.fillRect(-9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s)
-      ctx.fillRect(0 * s, 10 * s + wc + by, 8 * s, 3 * s)
+      drawLegs(0, 4 * s, 6 * s, 8 * s, '#6B4914', wc * -1)
+      drawLegs(2 * s, 4 * s, 6 * s, 8 * s, '#6B4914', wc)
 
-      ctx.fillStyle = e.torso
-      ctx.fillRect(-9 * s, -2 * s, 18 * s, 8 * s)
+      drawBoot(-9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s, '#78350f')
+      drawBoot(0, 10 * s + wc + by, 8 * s, 3 * s, '#78350f')
+
+      const torsoGrad = ctx.createLinearGradient(-9 * s, -2 * s, 9 * s, 6 * s)
+      torsoGrad.addColorStop(0, '#6B4914')
+      torsoGrad.addColorStop(0.5, '#5a3a0a')
+      torsoGrad.addColorStop(1, '#4a2a0a')
+      ctx.fillStyle = torsoGrad
+      ctx.beginPath()
+      ctx.moveTo(-9 * s, -2 * s)
+      ctx.quadraticCurveTo(-11 * s, 2 * s, -9 * s, 6 * s)
+      ctx.quadraticCurveTo(0, 8 * s, 9 * s, 6 * s)
+      ctx.quadraticCurveTo(11 * s, 2 * s, 9 * s, -2 * s)
+      ctx.closePath()
+      ctx.fill()
 
       ctx.fillStyle = '#5a3a0a'
-      ctx.fillRect(-10 * s, -3 * s, 20 * s, 2 * s)
+      ctx.beginPath()
+      ctx.moveTo(-10 * s, -3 * s)
+      ctx.quadraticCurveTo(0, -2 * s, 10 * s, -3 * s)
+      ctx.quadraticCurveTo(0, -4 * s, -10 * s, -3 * s)
+      ctx.fill()
 
-      ctx.fillStyle = '#8B6914'
+      ctx.shadowBlur = 0
+
+      const banditSkinGrad = ctx.createRadialGradient(0, -12 * s, 0, 0, -10 * s, 7 * s)
+      banditSkinGrad.addColorStop(0, '#a0782a')
+      banditSkinGrad.addColorStop(1, '#8B6914')
+      ctx.fillStyle = banditSkinGrad
       ctx.beginPath()
       ctx.ellipse(0, -10 * s + by, 6.5 * s, 7.5 * s, 0, 0, Math.PI * 2)
       ctx.fill()
@@ -781,27 +1060,38 @@ export function drawEntitySprite(
       ctx.stroke()
 
       ctx.fillStyle = '#475569'
-      ctx.fillRect(-12 * s, -1 * s, 4 * s, 3 * s)
+      ctx.beginPath()
+      ctx.moveTo(-12 * s, -1 * s)
+      ctx.quadraticCurveTo(-10 * s, 1 * s, -8 * s, -1 * s)
+      ctx.quadraticCurveTo(-10 * s, 0, -12 * s, -1 * s)
+      ctx.fill()
       ctx.fillStyle = '#94a3b8'
-      ctx.fillRect(-11 * s, -1 * s, 2 * s, 2 * s)
-
-      ctx.fillStyle = '#6B4914'
-      ctx.fillRect(-6 * s, 12 * s + wc * -1 + by, 4 * s, 4 * s)
-      ctx.fillRect(2 * s, 12 * s + wc + by, 4 * s, 4 * s)
+      ctx.beginPath()
+      ctx.arc(-10 * s, 0, 1.2 * s, 0, Math.PI * 2)
+      ctx.fill()
 
     } else if (name === 'Skeleton') {
       const by = Math.sin(t * 2.5) * 1
 
-      ctx.fillStyle = '#cbd5e1'
-      ctx.fillRect(-8 * s, 4 * s + wc * -1 + by, 7 * s, 8 * s)
-      ctx.fillRect(1 * s, 4 * s + wc + by, 7 * s, 8 * s)
+      ctx.shadowColor = 'rgba(0,0,0,0.2)'
+      ctx.shadowBlur = 3
 
-      ctx.fillStyle = '#94a3b8'
-      ctx.fillRect(-9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s)
-      ctx.fillRect(0 * s, 10 * s + wc + by, 8 * s, 3 * s)
+      drawLegs(0, 4 * s, 6 * s, 8 * s, '#cbd5e1', wc * -1)
+      drawLegs(2 * s, 4 * s, 6 * s, 8 * s, '#cbd5e1', wc)
+
+      drawBoot(-9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s, '#94a3b8')
+      drawBoot(0, 10 * s + wc + by, 8 * s, 3 * s, '#94a3b8')
 
       ctx.fillStyle = '#e2e8f0'
-      ctx.fillRect(-9 * s, -3 * s, 18 * s, 9 * s)
+      ctx.beginPath()
+      ctx.moveTo(-9 * s, -3 * s)
+      ctx.quadraticCurveTo(-10 * s, 2 * s, -9 * s, 6 * s)
+      ctx.quadraticCurveTo(0, 8 * s, 9 * s, 6 * s)
+      ctx.quadraticCurveTo(10 * s, 2 * s, 9 * s, -3 * s)
+      ctx.closePath()
+      ctx.fill()
+
+      ctx.shadowBlur = 0
 
       ctx.strokeStyle = '#94a3b8'
       ctx.lineWidth = 1 * s
@@ -814,10 +1104,15 @@ export function drawEntitySprite(
 
       ctx.fillStyle = '#94a3b8'
       for (let i = 0; i < 4; i++) {
-        ctx.fillRect(-7 * s + i * 4.5 * s, 1 * s, 2 * s, 1 * s)
+        ctx.beginPath()
+        ctx.ellipse(-7 * s + i * 4.5 * s, 1 * s, 1 * s, 0.6 * s, 0, 0, Math.PI * 2)
+        ctx.fill()
       }
 
-      ctx.fillStyle = '#f1f5f9'
+      const skullGrad = ctx.createRadialGradient(0, -12 * s, 0, 0, -10 * s, 7 * s)
+      skullGrad.addColorStop(0, '#f8fafc')
+      skullGrad.addColorStop(1, '#e2e8f0')
+      ctx.fillStyle = skullGrad
       ctx.beginPath()
       ctx.ellipse(0, -10 * s + by, 6 * s, 7 * s, 0, 0, Math.PI * 2)
       ctx.fill()
@@ -835,6 +1130,8 @@ export function drawEntitySprite(
       ctx.ellipse(2.5 * s, -11 * s + by, 2.5 * s * blink, 3 * s, 0, 0, Math.PI * 2)
       ctx.fill()
 
+      ctx.shadowColor = 'rgba(239,68,68,0.6)'
+      ctx.shadowBlur = 6 * s
       ctx.fillStyle = '#ef4444'
       ctx.beginPath()
       ctx.ellipse(-2.5 * s, -11 * s + by, 1.2 * s, 1.8 * s, 0, 0, Math.PI * 2)
@@ -842,6 +1139,7 @@ export function drawEntitySprite(
       ctx.beginPath()
       ctx.ellipse(2.5 * s, -11 * s + by, 1.2 * s, 1.8 * s, 0, 0, Math.PI * 2)
       ctx.fill()
+      ctx.shadowBlur = 0
 
       ctx.fillStyle = '#f8fafc'
       ctx.beginPath()
@@ -858,35 +1156,51 @@ export function drawEntitySprite(
       ctx.stroke()
 
       ctx.fillStyle = '#cbd5e1'
-      ctx.fillRect(-9 * s - 1 * s, -1 * s, 3 * s, 7 * s)
-      ctx.fillRect(6 * s + 1 * s, -1 * s, 3 * s, 7 * s)
-
-      ctx.fillStyle = '#e2e8f0'
-      ctx.fillRect(-6 * s, 12 * s + wc * -1 + by, 4 * s, 4 * s)
-      ctx.fillRect(2 * s, 12 * s + wc + by, 4 * s, 4 * s)
+      ctx.beginPath()
+      ctx.moveTo(-10 * s, -1 * s)
+      ctx.quadraticCurveTo(-8 * s, 3 * s, -7 * s, 6 * s)
+      ctx.quadraticCurveTo(-9 * s, 3 * s, -10 * s, -1 * s)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.moveTo(7 * s, -1 * s)
+      ctx.quadraticCurveTo(9 * s, 3 * s, 10 * s, 6 * s)
+      ctx.quadraticCurveTo(8 * s, 3 * s, 7 * s, -1 * s)
+      ctx.fill()
 
     } else if (name === 'Mage') {
       const by = Math.sin(t * 2.3) * 0.8
 
-      ctx.fillStyle = '#1d4ed8'
-      ctx.fillRect(-8 * s, 4 * s + wc * -1 + by, 7 * s, 8 * s)
-      ctx.fillRect(1 * s, 4 * s + wc + by, 7 * s, 8 * s)
+      ctx.shadowColor = 'rgba(0,0,0,0.2)'
+      ctx.shadowBlur = 3
 
-      ctx.fillStyle = '#0f3a8a'
-      ctx.fillRect(-9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s)
-      ctx.fillRect(0 * s, 10 * s + wc + by, 8 * s, 3 * s)
+      drawLegs(0, 4 * s, 6 * s, 8 * s, '#1d4ed8', wc * -1)
+      drawLegs(2 * s, 4 * s, 6 * s, 8 * s, '#1d4ed8', wc)
 
-      ctx.fillStyle = '#1d4ed8'
+      drawBoot(-9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s, '#0f3a8a')
+      drawBoot(0, 10 * s + wc + by, 8 * s, 3 * s, '#0f3a8a')
+
+      const robeGrad = ctx.createLinearGradient(-9 * s, -3 * s, 9 * s, 6 * s)
+      robeGrad.addColorStop(0, '#2563eb')
+      robeGrad.addColorStop(0.4, '#1d4ed8')
+      robeGrad.addColorStop(0.7, '#1e40af')
+      robeGrad.addColorStop(1, '#1e3a8a')
+      ctx.fillStyle = robeGrad
       ctx.beginPath()
       ctx.moveTo(-9 * s, -3 * s)
-      ctx.lineTo(9 * s, -3 * s)
-      ctx.lineTo(10 * s, 6 * s)
-      ctx.lineTo(-10 * s, 6 * s)
+      ctx.quadraticCurveTo(-10 * s, 2 * s, -10 * s, 6 * s)
+      ctx.quadraticCurveTo(0, 8 * s, 10 * s, 6 * s)
+      ctx.quadraticCurveTo(10 * s, 2 * s, 9 * s, -3 * s)
       ctx.closePath()
       ctx.fill()
 
+      ctx.shadowBlur = 0
+
       ctx.fillStyle = '#3b82f6'
-      ctx.fillRect(-7 * s, 1 * s, 14 * s, 4 * s)
+      ctx.beginPath()
+      ctx.moveTo(-7 * s, 1 * s)
+      ctx.quadraticCurveTo(0, 5 * s, 7 * s, 1 * s)
+      ctx.quadraticCurveTo(0, 3 * s, -7 * s, 1 * s)
+      ctx.fill()
 
       drawRobeGlow(0, 2 * s, 14 * s, 4 * s, 0.25 + Math.sin(t * 3) * 0.15)
 
@@ -902,23 +1216,25 @@ export function drawEntitySprite(
       drawNose(0, -9 * s + by)
       drawMouth(0, -7 * s + by, 1.5 * s)
 
-      ctx.fillStyle = '#1d4ed8'
+      const hatGrad = ctx.createLinearGradient(-7 * s, -16 * s, 7 * s, -10 * s)
+      hatGrad.addColorStop(0, '#1e40af')
+      hatGrad.addColorStop(0.5, '#1d4ed8')
+      hatGrad.addColorStop(1, '#2563eb')
+      ctx.fillStyle = hatGrad
       ctx.beginPath()
       ctx.moveTo(-7 * s, -16 * s + by)
-      ctx.lineTo(7 * s, -16 * s + by)
-      ctx.lineTo(6 * s, -10 * s + by)
-      ctx.lineTo(-6 * s, -10 * s + by)
-      ctx.closePath()
+      ctx.quadraticCurveTo(0, -22 * s, 7 * s, -16 * s + by)
+      ctx.quadraticCurveTo(0, -18 * s, -7 * s, -16 * s + by)
       ctx.fill()
       ctx.fillStyle = '#3b82f6'
       ctx.beginPath()
       ctx.moveTo(-5 * s, -18 * s + by)
-      ctx.lineTo(5 * s, -18 * s + by)
-      ctx.lineTo(3 * s, -16 * s + by)
-      ctx.lineTo(-3 * s, -16 * s + by)
-      ctx.closePath()
+      ctx.quadraticCurveTo(0, -23 * s, 5 * s, -18 * s + by)
+      ctx.quadraticCurveTo(0, -20 * s, -5 * s, -18 * s + by)
       ctx.fill()
 
+      ctx.shadowColor = 'rgba(96,165,250,0.5)'
+      ctx.shadowBlur = 6 * s
       ctx.fillStyle = '#60a5fa'
       ctx.beginPath()
       ctx.arc(0, -20 * s + by, 2 * s, 0, Math.PI * 2)
@@ -927,9 +1243,21 @@ export function drawEntitySprite(
       ctx.beginPath()
       ctx.arc(0, -20 * s + by, 1 * s, 0, Math.PI * 2)
       ctx.fill()
+      ctx.shadowBlur = 0
 
-      ctx.fillStyle = '#3b82f6'
       const orbY = Math.sin(t * 2.8) * 3 * s
+      const orbGlow = ctx.createRadialGradient(12 * s, -2 * s + orbY, 0, 12 * s, -2 * s + orbY, 6 * s)
+      orbGlow.addColorStop(0, 'rgba(147,197,253,0.8)')
+      orbGlow.addColorStop(0.3, 'rgba(96,165,250,0.4)')
+      orbGlow.addColorStop(1, 'rgba(96,165,250,0)')
+      ctx.fillStyle = orbGlow
+      ctx.beginPath()
+      ctx.arc(12 * s, -2 * s + orbY, 6 * s, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.shadowColor = 'rgba(147,197,253,0.6)'
+      ctx.shadowBlur = 8 * s
+      ctx.fillStyle = '#3b82f6'
       ctx.beginPath()
       ctx.arc(12 * s, -2 * s + orbY, 3.5 * s, 0, Math.PI * 2)
       ctx.fill()
@@ -941,35 +1269,45 @@ export function drawEntitySprite(
       ctx.beginPath()
       ctx.arc(12 * s, -3 * s + orbY, 1 * s, 0, Math.PI * 2)
       ctx.fill()
-      ctx.globalAlpha = 0.2 + Math.sin(t * 4) * 0.1
-      ctx.fillStyle = '#93c5fd'
-      ctx.beginPath()
-      ctx.arc(12 * s, -2 * s + orbY, 5 * s, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.globalAlpha = 1
-
-      ctx.fillStyle = '#1d4ed8'
-      ctx.fillRect(-6 * s, 12 * s + wc * -1 + by, 4 * s, 4 * s)
-      ctx.fillRect(2 * s, 12 * s + wc + by, 4 * s, 4 * s)
+      ctx.shadowBlur = 0
 
     } else if (name === 'Goblin') {
       const by = Math.sin(t * 2.7) * 1.2
 
-      ctx.fillStyle = '#16a34a'
-      ctx.fillRect(-8 * s, 4 * s + wc * -1 + by, 7 * s, 8 * s)
-      ctx.fillRect(1 * s, 4 * s + wc + by, 7 * s, 8 * s)
+      ctx.shadowColor = 'rgba(0,0,0,0.2)'
+      ctx.shadowBlur = 3
 
-      ctx.fillStyle = '#14532d'
-      ctx.fillRect(-9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s)
-      ctx.fillRect(0 * s, 10 * s + wc + by, 8 * s, 3 * s)
+      drawLegs(0, 4 * s, 6 * s, 8 * s, '#16a34a', wc * -1)
+      drawLegs(2 * s, 4 * s, 6 * s, 8 * s, '#16a34a', wc)
 
-      ctx.fillStyle = '#16a34a'
-      ctx.fillRect(-8 * s, -2 * s, 16 * s, 8 * s)
+      drawBoot(-9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s, '#14532d')
+      drawBoot(0, 10 * s + wc + by, 8 * s, 3 * s, '#14532d')
+
+      const gobTorso = ctx.createLinearGradient(-8 * s, -2 * s, 8 * s, 6 * s)
+      gobTorso.addColorStop(0, '#16a34a')
+      gobTorso.addColorStop(1, '#15803d')
+      ctx.fillStyle = gobTorso
+      ctx.beginPath()
+      ctx.moveTo(-8 * s, -2 * s)
+      ctx.quadraticCurveTo(-9 * s, 2 * s, -8 * s, 6 * s)
+      ctx.quadraticCurveTo(0, 8 * s, 8 * s, 6 * s)
+      ctx.quadraticCurveTo(9 * s, 2 * s, 8 * s, -2 * s)
+      ctx.closePath()
+      ctx.fill()
 
       ctx.fillStyle = '#15803d'
-      ctx.fillRect(-9 * s, -3 * s, 18 * s, 2 * s)
+      ctx.beginPath()
+      ctx.moveTo(-9 * s, -3 * s)
+      ctx.quadraticCurveTo(0, -2 * s, 9 * s, -3 * s)
+      ctx.quadraticCurveTo(0, -4 * s, -9 * s, -3 * s)
+      ctx.fill()
 
-      ctx.fillStyle = '#22c55e'
+      ctx.shadowBlur = 0
+
+      const gobSkin = ctx.createRadialGradient(0, -12 * s, 0, 0, -10 * s, 7 * s)
+      gobSkin.addColorStop(0, '#4ade80')
+      gobSkin.addColorStop(1, '#22c55e')
+      ctx.fillStyle = gobSkin
       ctx.beginPath()
       ctx.ellipse(0, -10 * s + by, 6 * s, 6.5 * s, 0, 0, Math.PI * 2)
       ctx.fill()
@@ -1009,11 +1347,23 @@ export function drawEntitySprite(
       ctx.stroke()
 
       ctx.fillStyle = '#15803d'
-      ctx.fillRect(-7 * s, -14 * s + by, 14 * s, 2.5 * s)
-      ctx.fillRect(-8 * s, -13 * s + by, 16 * s, 1.5 * s)
+      ctx.beginPath()
+      ctx.moveTo(-7 * s, -14 * s + by)
+      ctx.quadraticCurveTo(0, -16 * s, 7 * s, -14 * s + by)
+      ctx.quadraticCurveTo(0, -13 * s, -7 * s, -14 * s + by)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.moveTo(-8 * s, -13 * s + by)
+      ctx.quadraticCurveTo(0, -14.5 * s, 8 * s, -13 * s + by)
+      ctx.quadraticCurveTo(0, -12.5 * s, -8 * s, -13 * s + by)
+      ctx.fill()
 
       ctx.fillStyle = '#dc2626'
-      ctx.fillRect(-14 * s, -1 * s, 4 * s, 4 * s)
+      ctx.beginPath()
+      ctx.moveTo(-14 * s, -1 * s)
+      ctx.quadraticCurveTo(-12 * s, 2 * s, -10 * s, -1 * s)
+      ctx.quadraticCurveTo(-12 * s, 0, -14 * s, -1 * s)
+      ctx.fill()
       ctx.strokeStyle = '#450a0a'
       ctx.lineWidth = 1.5 * s
       ctx.beginPath()
@@ -1029,30 +1379,48 @@ export function drawEntitySprite(
       ctx.closePath()
       ctx.fill()
 
-      ctx.fillStyle = '#22c55e'
-      ctx.fillRect(-6 * s, 12 * s + wc * -1 + by, 4 * s, 4 * s)
-      ctx.fillRect(2 * s, 12 * s + wc + by, 4 * s, 4 * s)
-
     } else if (name === 'Boss') {
       const by = 0
 
-      ctx.fillStyle = '#7f1d1d'
-      ctx.fillRect(-10 * s, 4 * s + wc * -1 + by, 9 * s, 10 * s)
-      ctx.fillRect(1 * s, 4 * s + wc + by, 9 * s, 10 * s)
+      ctx.shadowColor = 'rgba(0,0,0,0.3)'
+      ctx.shadowBlur = 5
 
-      ctx.fillStyle = '#450a0a'
-      ctx.fillRect(-11 * s, 12 * s + wc * -1 + by, 10 * s, 5 * s)
-      ctx.fillRect(0 * s, 12 * s + wc + by, 10 * s, 5 * s)
+      drawLegs(0, 4 * s, 8 * s, 10 * s, '#7f1d1d', wc * -1)
+      drawLegs(2 * s, 4 * s, 8 * s, 10 * s, '#7f1d1d', wc)
 
-      ctx.fillStyle = '#b91c1c'
-      ctx.fillRect(-11 * s, -4 * s, 22 * s, 11 * s)
+      drawBoot(-11 * s, 12 * s + wc * -1 + by, 10 * s, 5 * s, '#450a0a')
+      drawBoot(0, 12 * s + wc + by, 10 * s, 5 * s, '#450a0a')
+
+      const bossTorso = ctx.createLinearGradient(-11 * s, -4 * s, 11 * s, 7 * s)
+      bossTorso.addColorStop(0, '#dc2626')
+      bossTorso.addColorStop(0.3, '#b91c1c')
+      bossTorso.addColorStop(0.6, '#991b1b')
+      bossTorso.addColorStop(1, '#7f1d1d')
+      ctx.fillStyle = bossTorso
+      ctx.beginPath()
+      ctx.moveTo(-11 * s, -4 * s)
+      ctx.quadraticCurveTo(-13 * s, 2 * s, -11 * s, 7 * s)
+      ctx.quadraticCurveTo(0, 9 * s, 11 * s, 7 * s)
+      ctx.quadraticCurveTo(13 * s, 2 * s, 11 * s, -4 * s)
+      ctx.closePath()
+      ctx.fill()
 
       ctx.fillStyle = '#991b1b'
-      ctx.fillRect(-12 * s, -5 * s, 24 * s, 2 * s)
+      ctx.beginPath()
+      ctx.moveTo(-12 * s, -5 * s)
+      ctx.quadraticCurveTo(0, -4 * s, 12 * s, -5 * s)
+      ctx.quadraticCurveTo(0, -6 * s, -12 * s, -5 * s)
+      ctx.fill()
+
+      ctx.shadowBlur = 0
 
       ctx.fillStyle = '#dc2626'
-      ctx.fillRect(-7 * s, -1 * s, 4 * s, 3 * s)
-      ctx.fillRect(3 * s, -1 * s, 4 * s, 3 * s)
+      ctx.beginPath()
+      ctx.ellipse(-5 * s, 0, 2 * s, 1.5 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(5 * s, 0, 2 * s, 1.5 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
 
       for (let side = -1; side <= 1; side += 2) {
         drawSpike(5 * s * side, -4 * s, 4 * s, side)
@@ -1061,7 +1429,11 @@ export function drawEntitySprite(
         drawSpike(-8 * s * side, 3 * s, 3.5 * s, side)
       }
 
-      ctx.fillStyle = '#fca5a5'
+      const bossSkin = ctx.createRadialGradient(0, -14 * s, 0, 0, -12 * s, 9 * s)
+      bossSkin.addColorStop(0, '#fca5a5')
+      bossSkin.addColorStop(0.6, '#ef4444')
+      bossSkin.addColorStop(1, '#dc2626')
+      ctx.fillStyle = bossSkin
       ctx.beginPath()
       ctx.ellipse(0, -12 * s + by, 8 * s, 9 * s, 0, 0, Math.PI * 2)
       ctx.fill()
@@ -1073,6 +1445,9 @@ export function drawEntitySprite(
       ctx.beginPath()
       ctx.ellipse(3.5 * s, -13.5 * s + by, 3.5 * s * blink, 3.5 * s, 0, 0, Math.PI * 2)
       ctx.fill()
+
+      ctx.shadowColor = 'rgba(251,191,36,0.6)'
+      ctx.shadowBlur = 8 * s
       ctx.fillStyle = '#fbbf24'
       ctx.beginPath()
       ctx.ellipse(-3.5 * s, -13.5 * s + by, 2.5 * s, 3 * s, 0, 0, Math.PI * 2)
@@ -1080,6 +1455,8 @@ export function drawEntitySprite(
       ctx.beginPath()
       ctx.ellipse(3.5 * s, -13.5 * s + by, 2.5 * s, 3 * s, 0, 0, Math.PI * 2)
       ctx.fill()
+      ctx.shadowBlur = 0
+
       ctx.fillStyle = '#0f172a'
       ctx.beginPath()
       ctx.ellipse(-3.5 * s, -13.5 * s + by, 1.2 * s, 1.8 * s, 0, 0, Math.PI * 2)
@@ -1110,13 +1487,39 @@ export function drawEntitySprite(
       ctx.arc(0, -8 * s + by, 3 * s, 0.1, Math.PI - 0.1)
       ctx.stroke()
 
-      ctx.fillStyle = '#fbbf24'
       const crownBob = Math.sin(t * 2) * 1.5
-      ctx.fillRect(-5 * s, -20 * s + crownBob + by, 10 * s, 4 * s)
-      ctx.fillRect(-7 * s, -19 * s + crownBob + by, 14 * s, 2 * s)
-      ctx.fillRect(-4 * s, -22 * s + crownBob + by, 2.5 * s, 3 * s)
-      ctx.fillRect(1.5 * s, -22 * s + crownBob + by, 2.5 * s, 3 * s)
-      ctx.fillRect(-1 * s, -21 * s + crownBob + by, 2 * s, 2 * s)
+      const crownGrad = ctx.createLinearGradient(-5 * s, -22 * s, 5 * s, -16 * s)
+      crownGrad.addColorStop(0, '#fbbf24')
+      crownGrad.addColorStop(0.5, '#f59e0b')
+      crownGrad.addColorStop(1, '#d97706')
+      ctx.fillStyle = crownGrad
+      ctx.beginPath()
+      ctx.moveTo(-5 * s, -20 * s + crownBob + by)
+      ctx.quadraticCurveTo(0, -21 * s, 5 * s, -20 * s + crownBob + by)
+      ctx.quadraticCurveTo(0, -19 * s, -5 * s, -20 * s + crownBob + by)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.moveTo(-7 * s, -19 * s + crownBob + by)
+      ctx.quadraticCurveTo(0, -18 * s, 7 * s, -19 * s + crownBob + by)
+      ctx.quadraticCurveTo(0, -20 * s, -7 * s, -19 * s + crownBob + by)
+      ctx.fill()
+
+      ctx.fillStyle = '#fbbf24'
+      ctx.beginPath()
+      ctx.moveTo(-4 * s, -22 * s + crownBob + by)
+      ctx.quadraticCurveTo(-3 * s, -19 * s, -1.5 * s, -22 * s + crownBob + by)
+      ctx.closePath()
+      ctx.fill()
+      ctx.beginPath()
+      ctx.moveTo(1.5 * s, -22 * s + crownBob + by)
+      ctx.quadraticCurveTo(3 * s, -19 * s, 4 * s, -22 * s + crownBob + by)
+      ctx.closePath()
+      ctx.fill()
+      ctx.beginPath()
+      ctx.moveTo(-1 * s, -21 * s + crownBob + by)
+      ctx.quadraticCurveTo(0, -19 * s, 1 * s, -21 * s + crownBob + by)
+      ctx.closePath()
+      ctx.fill()
 
       ctx.fillStyle = '#ef4444'
       ctx.beginPath()
@@ -1131,32 +1534,54 @@ export function drawEntitySprite(
       ctx.fill()
 
       ctx.fillStyle = '#450a0a'
-      ctx.fillRect(-12 * s, 1 * s, 3 * s, 10 * s)
-      ctx.fillRect(9 * s, 1 * s, 3 * s, 10 * s)
+      ctx.beginPath()
+      ctx.moveTo(-12 * s, 1 * s)
+      ctx.quadraticCurveTo(-10.5 * s, 6 * s, -9 * s, 11 * s)
+      ctx.quadraticCurveTo(-11 * s, 6 * s, -12 * s, 1 * s)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.moveTo(9 * s, 1 * s)
+      ctx.quadraticCurveTo(10.5 * s, 6 * s, 12 * s, 11 * s)
+      ctx.quadraticCurveTo(11 * s, 6 * s, 9 * s, 1 * s)
+      ctx.fill()
 
       ctx.fillStyle = '#7f1d1d'
-      ctx.fillRect(-13 * s, 0, 5 * s, 2 * s)
-      ctx.fillRect(8 * s, 0, 5 * s, 2 * s)
+      ctx.beginPath()
+      ctx.moveTo(-13 * s, 0)
+      ctx.quadraticCurveTo(-10.5 * s, 1.5 * s, -8 * s, 0)
+      ctx.quadraticCurveTo(-10.5 * s, 0.5 * s, -13 * s, 0)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.moveTo(8 * s, 0)
+      ctx.quadraticCurveTo(10.5 * s, 1.5 * s, 13 * s, 0)
+      ctx.quadraticCurveTo(10.5 * s, 0.5 * s, 8 * s, 0)
+      ctx.fill()
 
       ctx.fillStyle = '#b91c1c'
-      ctx.fillRect(-13 * s, 10 * s, 5 * s, 3 * s)
-      ctx.fillRect(8 * s, 10 * s, 5 * s, 3 * s)
-
-      ctx.fillStyle = '#7f1d1d'
-      ctx.fillRect(-9 * s, 14 * s + wc * -1 + by, 7 * s, 5 * s)
-      ctx.fillRect(2 * s, 14 * s + wc + by, 7 * s, 5 * s)
+      ctx.beginPath()
+      ctx.moveTo(-13 * s, 10 * s)
+      ctx.quadraticCurveTo(-10.5 * s, 12 * s, -8 * s, 10 * s)
+      ctx.quadraticCurveTo(-10.5 * s, 11 * s, -13 * s, 10 * s)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.moveTo(8 * s, 10 * s)
+      ctx.quadraticCurveTo(10.5 * s, 12 * s, 13 * s, 10 * s)
+      ctx.quadraticCurveTo(10.5 * s, 11 * s, 8 * s, 10 * s)
+      ctx.fill()
 
     } else {
-      ctx.fillStyle = e.torso
-      ctx.fillRect(-8 * s, 4 * s + wc * -1, 7 * s, 8 * s)
-      ctx.fillRect(1 * s, 4 * s + wc, 7 * s, 8 * s)
+      ctx.shadowColor = 'rgba(0,0,0,0.2)'
+      ctx.shadowBlur = 3
 
-      ctx.fillStyle = '#2d1b0e'
-      ctx.fillRect(-9 * s, 10 * s + wc * -1, 8 * s, 3 * s)
-      ctx.fillRect(0 * s, 10 * s + wc, 8 * s, 3 * s)
+      drawLegs(0, 4 * s, 6 * s, 8 * s, e.torso, wc * -1)
+      drawLegs(2 * s, 4 * s, 6 * s, 8 * s, e.torso, wc)
 
-      ctx.fillStyle = e.torso
-      ctx.fillRect(-9 * s, -3 * s, 18 * s, 9 * s)
+      drawBoot(-9 * s, 10 * s + wc * -1, 8 * s, 3 * s, '#2d1b0e')
+      drawBoot(0, 10 * s + wc, 8 * s, 3 * s, '#2d1b0e')
+
+      drawBodyTorso(0, -3 * s, 18 * s, 9 * s, e.torso)
+
+      ctx.shadowBlur = 0
 
       ctx.fillStyle = e.skin
       ctx.beginPath()
@@ -1171,11 +1596,11 @@ export function drawEntitySprite(
       drawMouth(0, -7 * s, 1.5 * s)
 
       ctx.fillStyle = '#450a0a'
-      ctx.fillRect(-3 * s, -2 * s, 6 * s, 2 * s)
-
-      ctx.fillStyle = e.skin
-      ctx.fillRect(-6 * s, 12 * s + wc * -1, 4 * s, 4 * s)
-      ctx.fillRect(2 * s, 12 * s + wc, 4 * s, 4 * s)
+      ctx.beginPath()
+      ctx.moveTo(-3 * s, -2 * s)
+      ctx.quadraticCurveTo(0, 0, 3 * s, -2 * s)
+      ctx.quadraticCurveTo(0, -1 * s, -3 * s, -2 * s)
+      ctx.fill()
     }
   }
 
@@ -1215,24 +1640,40 @@ export function drawBackground(
   if (hour > 6 && hour < 20) {
     const sunY = h * 0.15 + Math.sin((hour - 6) / 14 * Math.PI) * h * 0.3
     const sunX = w * ((hour - 6) / 14)
-    ctx.fillStyle = 'rgba(255,220,100,0.4)'
+
+    const sunGlow = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 60)
+    sunGlow.addColorStop(0, 'rgba(255,220,100,0.6)')
+    sunGlow.addColorStop(0.4, 'rgba(255,200,80,0.3)')
+    sunGlow.addColorStop(1, 'rgba(255,200,80,0)')
+    ctx.fillStyle = sunGlow
     ctx.beginPath()
-    ctx.arc(sunX, sunY, 40, 0, Math.PI * 2)
+    ctx.arc(sunX, sunY, 60, 0, Math.PI * 2)
     ctx.fill()
-    ctx.fillStyle = '#fbbf24'
+
+    const sunGrad = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 20)
+    sunGrad.addColorStop(0, '#fef3c7')
+    sunGrad.addColorStop(0.5, '#fbbf24')
+    sunGrad.addColorStop(1, '#f59e0b')
+    ctx.fillStyle = sunGrad
     ctx.beginPath()
     ctx.arc(sunX, sunY, 20, 0, Math.PI * 2)
     ctx.fill()
+
     ctx.fillStyle = '#fde68a'
     ctx.beginPath()
     ctx.arc(sunX - 2, sunY - 2, 12, 0, Math.PI * 2)
     ctx.fill()
   } else {
     const moonX = w * 0.7, moonY = h * 0.12
-    ctx.fillStyle = 'rgba(200,210,255,0.15)'
+
+    const moonGlow = ctx.createRadialGradient(moonX, moonY, 0, moonX, moonY, 40)
+    moonGlow.addColorStop(0, 'rgba(200,210,255,0.2)')
+    moonGlow.addColorStop(1, 'rgba(200,210,255,0)')
+    ctx.fillStyle = moonGlow
     ctx.beginPath()
-    ctx.arc(moonX, moonY, 30, 0, Math.PI * 2)
+    ctx.arc(moonX, moonY, 40, 0, Math.PI * 2)
     ctx.fill()
+
     ctx.fillStyle = '#e2e8f0'
     ctx.beginPath()
     ctx.arc(moonX, moonY, 16, 0, Math.PI * 2)
@@ -1281,7 +1722,11 @@ export function drawBackground(
     const tx = ((i * 180 + cameraX * 0.05) % (w + 100)) - 50
     const ty = h * 0.45 + Math.sin(i * 2.5) * 30
     ctx.fillStyle = '#1a3a2a'
-    ctx.fillRect(tx, ty, 4, 20 + Math.sin(i) * 5)
+    ctx.beginPath()
+    ctx.moveTo(tx, ty)
+    ctx.quadraticCurveTo(tx, ty + 20 + Math.sin(i) * 5, tx + 2, ty + 20 + Math.sin(i) * 5)
+    ctx.quadraticCurveTo(tx + 2, ty, tx, ty)
+    ctx.fill()
     ctx.fillStyle = '#2d5a27'
     ctx.beginPath()
     ctx.arc(tx + 2, ty, 12 + Math.sin(i * 1.3) * 4, Math.PI, Math.PI * 2)
@@ -1308,18 +1753,13 @@ export function drawFogOfWar(
   ctx.fillRect(0, 0, w, h)
 
   ctx.globalCompositeOperation = 'destination-out'
-  ctx.beginPath()
-  const r = radius
-  ctx.arc(px, py, r, 0, Math.PI * 2)
-  ctx.fill()
-
-  ctx.globalCompositeOperation = 'destination-out'
-  const grad = ctx.createRadialGradient(px, py, r * 0.7, px, py, r)
+  const grad = ctx.createRadialGradient(px, py, 0, px, py, radius)
   grad.addColorStop(0, 'rgba(0,0,0,1)')
+  grad.addColorStop(0.6, 'rgba(0,0,0,0.8)')
   grad.addColorStop(1, 'rgba(0,0,0,0)')
   ctx.fillStyle = grad
   ctx.beginPath()
-  ctx.arc(px, py, r, 0, Math.PI * 2)
+  ctx.arc(px, py, radius, 0, Math.PI * 2)
   ctx.fill()
 
   ctx.restore()
@@ -1338,17 +1778,22 @@ export function drawLightning(
 
   ctx.save()
 
-  const grad = ctx.createRadialGradient(x, y, 0, x, y, radius)
-  grad.addColorStop(0, color)
-  grad.addColorStop(0.3, `${color}80`)
-  grad.addColorStop(0.6, `${color}30`)
-  grad.addColorStop(1, `${color}00`)
-  ctx.fillStyle = grad
+  const innerGrad = ctx.createRadialGradient(x, y, 0, x, y, radius)
+  innerGrad.addColorStop(0, color)
+  innerGrad.addColorStop(0.3, `${color}80`)
+  innerGrad.addColorStop(0.6, `${color}30`)
+  innerGrad.addColorStop(1, `${color}00`)
+  ctx.fillStyle = innerGrad
   ctx.globalAlpha = pulse * 0.6
   ctx.beginPath()
   ctx.arc(x, y, radius, 0, Math.PI * 2)
   ctx.fill()
 
+  const outerGrad = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.4)
+  outerGrad.addColorStop(0, `${color}40`)
+  outerGrad.addColorStop(0.5, `${color}15`)
+  outerGrad.addColorStop(1, `${color}00`)
+  ctx.fillStyle = outerGrad
   ctx.globalAlpha = pulse * 0.3
   ctx.beginPath()
   ctx.arc(x, y, radius * 1.4, 0, Math.PI * 2)

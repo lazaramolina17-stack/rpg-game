@@ -222,294 +222,960 @@ export function drawEntitySprite(
 
   const t = time / 1000
   const bobOffset = bob !== 0 ? Math.sin(t * 3 + x) * bob : 0
-  const walkCycle = type === 'player' || type === 'npc' || type === 'enemy' ? Math.sin(t * 6) : 0
+  const walkPhase = Math.sin(t * 6)
+  const walkCycle = walkPhase * 1.5
+  const blinkCycle = Math.sin(t * 4.7) > 0.95 ? 0 : 1
+  const idleBob = Math.sin(t * 2.3) * 0.5
 
-  ctx.fillStyle = 'rgba(0,0,0,0.2)'
+  ctx.fillStyle = 'rgba(0,0,0,0.25)'
   ctx.beginPath()
-  ctx.ellipse(0, 14, 12, 4, 0, 0, Math.PI * 2)
+  ctx.ellipse(0, 15, 13, 5, 0, 0, Math.PI * 2)
   ctx.fill()
 
   ctx.translate(0, bobOffset)
 
-if (type === 'player') {
-    const wc = walkCycle * 1.5
+  function drawEye(sx: number, sy: number, open: number, color = '#1e293b') {
+    ctx.fillStyle = '#f8fafc'
+    ctx.beginPath()
+    ctx.ellipse(sx, sy, 3.5 * open, 3.5, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.ellipse(sx, sy, 2, 2.5, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#0f172a'
+    ctx.beginPath()
+    ctx.ellipse(sx, sy, 1, 1.5, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#f8fafc'
+    ctx.beginPath()
+    ctx.ellipse(sx + 0.8, sy - 0.8, 0.8, 0.8, 0, 0, Math.PI * 2)
+    ctx.fill()
+  }
 
-    ctx.fillStyle = '#3b0764'
-    ctx.fillRect(-9, 9 + wc * -1, 8, 5)
-    ctx.fillRect(1, 9 + wc, 8, 5)
+  function drawBrow(sx: number, sy: number, angle: number) {
+    ctx.strokeStyle = '#1e293b'
+    ctx.lineWidth = 1.5
+    ctx.beginPath()
+    ctx.moveTo(sx - 3, sy + angle * 1.5)
+    ctx.lineTo(sx + 3, sy - angle * 1.5)
+    ctx.stroke()
+  }
 
-    ctx.fillStyle = '#5b21b6'
-    ctx.fillRect(-7, 2 + wc, 14, 8)
+  function drawMouth(sx: number, sy: number, w: number) {
+    ctx.strokeStyle = '#4a2c1a'
+    ctx.lineWidth = 1.2
+    ctx.beginPath()
+    ctx.arc(sx, sy + 1, w, 0.1, Math.PI - 0.1)
+    ctx.stroke()
+  }
+
+  function drawNose(sx: number, sy: number) {
+    ctx.fillStyle = '#e8b87a'
+    ctx.beginPath()
+    ctx.ellipse(sx, sy, 1.2, 1.8, 0, 0, Math.PI * 2)
+    ctx.fill()
+  }
+
+  function drawEar(sx: number, sy: number, skin: string) {
+    ctx.fillStyle = skin
+    ctx.beginPath()
+    ctx.ellipse(sx, sy, 2, 3.5, 0, 0, Math.PI * 2)
+    ctx.fill()
+  }
+
+  function drawCape(sx: number, sy: number, w: number, h: number, color: string, wave: number) {
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.moveTo(sx - w / 2, sy)
+    for (let i = 0; i <= 8; i++) {
+      const px = sx - w / 2 + (w * i) / 8
+      const wx = Math.sin(t * 2.5 + i * 0.8 + x * 0.01) * wave
+      const py2 = sy + (h * i) / 8 + wx
+      ctx.lineTo(px, py2)
+    }
+    for (let i = 8; i >= 0; i--) {
+      const px = sx - w / 2 + (w * i) / 8
+      const wx = Math.sin(t * 2.5 + i * 0.8 + x * 0.01) * wave
+      const py2 = sy + (h * i) / 8 + wx + h * 0.3
+      ctx.lineTo(px, py2)
+    }
+    ctx.closePath()
+    ctx.fill()
+  }
+
+  function drawArmorPlate(sx: number, sy: number, w: number, h: number, color: string, highlight: string) {
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.moveTo(sx, sy)
+    ctx.lineTo(sx + w, sy)
+    ctx.lineTo(sx + w - 2, sy + h)
+    ctx.lineTo(sx + 2, sy + h)
+    ctx.closePath()
+    ctx.fill()
+    ctx.fillStyle = highlight
+    ctx.beginPath()
+    ctx.moveTo(sx + 2, sy + 2)
+    ctx.lineTo(sx + w - 4, sy + 2)
+    ctx.lineTo(sx + w - 4, sy + h - 2)
+    ctx.lineTo(sx + 2, sy + h - 2)
+    ctx.closePath()
+    ctx.fill()
+  }
+
+  function drawBoot(sx: number, sy: number, w: number, h: number, color: string) {
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.moveTo(sx, sy)
+    ctx.lineTo(sx + w, sy)
+    ctx.lineTo(sx + w + 1, sy + h)
+    ctx.lineTo(sx - 1, sy + h)
+    ctx.closePath()
+    ctx.fill()
+  }
+
+  function drawSkirt(sx: number, sy: number, w: number, h: number, color: string, wave: number) {
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.moveTo(sx - w / 2, sy)
+    for (let i = 0; i <= 6; i++) {
+      const px = sx - w / 2 + (w * i) / 6
+      const wx = Math.sin(t * 3 + i * 1.2) * wave
+      ctx.lineTo(px, sy + h + wx)
+    }
+    ctx.closePath()
+    ctx.fill()
+  }
+
+  function drawHair(sx: number, sy: number, w: number, h: number, color: string) {
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.ellipse(sx, sy - h * 0.3, w / 2 + 1, h * 0.7, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillRect(sx - w / 2, sy - h * 0.7, w, h * 0.5)
+  }
+
+  function drawBeard(sx: number, sy: number, w: number, h: number, color: string) {
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.moveTo(sx - w / 2, sy)
+    for (let i = 0; i <= 6; i++) {
+      const px = sx - w / 2 + (w * i) / 6
+      const py = sy + h * 0.3 + Math.sin(i * 0.8) * h * 0.2
+      ctx.lineTo(px, py)
+    }
+    ctx.lineTo(sx, sy + h)
+    ctx.closePath()
+    ctx.fill()
+  }
+
+  function drawRobeGlow(sx: number, sy: number, w: number, h: number, glow: number) {
+    ctx.globalAlpha = glow
+    ctx.fillStyle = '#60a5fa'
+    ctx.beginPath()
+    ctx.ellipse(sx, sy + h * 0.5, w * 0.4, h * 0.3, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#93c5fd'
+    ctx.beginPath()
+    ctx.ellipse(sx - w * 0.15, sy + h * 0.4, w * 0.15, h * 0.15, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#bfdbfe'
+    ctx.beginPath()
+    ctx.ellipse(sx + w * 0.15, sy + h * 0.6, w * 0.1, h * 0.1, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.globalAlpha = 1
+  }
+
+  function drawGoblinEar(sx: number, sy: number, flip: number) {
+    ctx.fillStyle = '#16a34a'
+    ctx.beginPath()
+    ctx.moveTo(sx, sy)
+    ctx.lineTo(sx + flip * 5, sy - 3)
+    ctx.lineTo(sx + flip * 4, sy + 3)
+    ctx.closePath()
+    ctx.fill()
+  }
+
+  function drawSpike(sx: number, sy: number, h: number, flip: number) {
+    ctx.fillStyle = '#dc2626'
+    ctx.beginPath()
+    ctx.moveTo(sx, sy)
+    ctx.lineTo(sx + flip * 3, sy - h)
+    ctx.lineTo(sx + flip * 5, sy)
+    ctx.closePath()
+    ctx.fill()
+  }
+
+  if (type === 'player') {
+    const wc = walkCycle
+    const capeWave = Math.sin(t * 2.5 + x * 0.01) * 2.5
+    const blink = blinkCycle
+
+    drawCape(0, -3, 24, 16, '#5b21b6', capeWave)
+
+    ctx.fillStyle = '#1e0a3c'
+    ctx.fillRect(-10, 8 + wc * -1, 8, 5)
+    ctx.fillRect(2, 8 + wc, 8, 5)
+
+    drawBoot(-10, 12 + wc * -1, 8, 4, '#1e0a3c')
+    drawBoot(2, 12 + wc, 8, 4, '#1e0a3c')
+
     ctx.fillStyle = '#4c1d95'
-    ctx.fillRect(-7, 2 + wc, 14, 3)
+    ctx.fillRect(-9, 6 + wc * -1, 18, 4)
+    drawSkirt(0, 7, 18, 7, '#4c1d95', 1.5)
 
-    ctx.fillStyle = '#7c3aed'
-    ctx.fillRect(-10, -3 + wc, 20, 7)
-    ctx.fillStyle = '#6d28d9'
-    ctx.fillRect(-10, -3 + wc, 20, 2)
+    drawArmorPlate(-8, -3, 16, 10, '#7c3aed', '#a855f7')
+
+    ctx.fillStyle = '#fbbf24'
+    ctx.fillRect(-5, 6, 10, 1.5)
+
+    ctx.fillStyle = '#a855f7'
+    ctx.fillRect(-10, -1, 3, 8)
+    ctx.fillRect(7, -1, 3, 8)
+
+    ctx.fillStyle = '#f8fafc'
+    ctx.fillRect(-10, 2, 3, 2)
+    ctx.fillRect(7, 2, 3, 2)
+
+    ctx.fillStyle = '#f8fafc'
+    ctx.beginPath()
+    ctx.ellipse(-8, 7, 2, 2.5, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.beginPath()
+    ctx.ellipse(8, 7, 2, 2.5, 0, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.fillStyle = '#fde68a'
+    ctx.beginPath()
+    ctx.ellipse(0, -12, 7.5, 8.5, 0, 0, Math.PI * 2)
+    ctx.fill()
+
+    drawHair(0, -12, 15, 7, '#2d1b69')
+    ctx.fillStyle = '#2d1b69'
+    ctx.fillRect(-4, -20, 8, 3)
+    ctx.fillRect(-7, -18, 14, 3)
+
+    drawEar(-8, -11, '#fde68a')
+    drawEar(8, -11, '#fde68a')
+
+    drawEye(-3.5, -13, blink)
+    drawEye(3.5, -13, blink)
+    drawBrow(-3.5, -15.5, -0.5)
+    drawBrow(3.5, -15.5, 0.5)
+    drawNose(0, -11)
+    drawMouth(0, -8.5, 2.5)
 
     ctx.fillStyle = '#c084fc'
-    ctx.fillRect(-11, -8 + wc, 8, 6)
-    ctx.fillRect(3, -8 + wc, 8, 6)
-
-    ctx.fillStyle = '#fde68a'
-    ctx.fillRect(-4, -12 + wc, 8, 5)
-    ctx.fillRect(-5, -11 + wc, 10, 3)
-
-    ctx.fillStyle = '#f8fafc'
-    ctx.fillRect(-7, -7 + wc, 4, 4)
-    ctx.fillRect(3, -7 + wc, 4, 4)
-    ctx.fillStyle = '#1e293b'
-    ctx.fillRect(-6, -6 + wc, 2, 2)
-    ctx.fillRect(4, -6 + wc, 2, 2)
+    ctx.fillRect(-1, -10, 2, 2)
 
     ctx.fillStyle = '#fbbf24'
-    ctx.fillRect(-1, -6 + wc, 2, 2)
-    ctx.fillRect(-1, -4 + wc, 2, 1)
+    ctx.fillRect(-9, -2, 2, 2)
+    ctx.fillRect(7, -2, 2, 2)
+
+    ctx.strokeStyle = '#a855f7'
+    ctx.lineWidth = 1.5
+    ctx.beginPath()
+    ctx.moveTo(11, -2)
+    ctx.lineTo(16, -10)
+    ctx.lineTo(18, -8)
+    ctx.lineTo(13, 0)
+    ctx.closePath()
+    ctx.fillStyle = '#e2e8f0'
+    ctx.fill()
 
     ctx.fillStyle = '#94a3b8'
-    ctx.fillRect(11, 0 + wc, 3, 8)
-    ctx.fillStyle = '#cbd5e1'
-    ctx.fillRect(11, -1 + wc, 3, 2)
-    ctx.fillRect(12, 0 + wc, 1, 7)
+    ctx.fillRect(13, -12, 1.5, 6)
 
     ctx.fillStyle = '#fbbf24'
-    ctx.fillRect(12, -1 + wc, 1, 1)
-    ctx.fillRect(11, -1 + wc, 1, 2)
+    ctx.beginPath()
+    ctx.arc(13, -13, 2.5, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#ef4444'
+    ctx.beginPath()
+    ctx.arc(13, -13, 1.2, 0, Math.PI * 2)
+    ctx.fill()
 
-    ctx.fillStyle = '#4a4a6a'
-    ctx.fillRect(-14, 0 + wc, 4, 7)
-    ctx.fillStyle = '#6a6a8a'
-    ctx.fillRect(-14, -1 + wc, 4, 2)
-    ctx.fillRect(-13, 0 + wc, 2, 6)
-
-    ctx.fillStyle = '#fbbf24'
-    ctx.fillRect(-14, -1 + wc, 1, 1)
-    ctx.fillRect(-11, -1 + wc, 1, 1)
-
-    const cw = Math.sin(t * 2) * 2
     ctx.fillStyle = '#6d28d9'
-    ctx.fillRect(-9, -10 + wc + cw, 18, 4)
-    ctx.fillRect(-8, -7 + wc + cw, 16, 3)
-    ctx.fillRect(-7, -5 + wc + cw, 14, 2)
+    ctx.fillRect(12, -6, 4, 2)
+    ctx.fillStyle = '#fbbf24'
+    ctx.fillRect(11, -2, 1.5, 1)
+
+    ctx.strokeStyle = '#475569'
+    ctx.lineWidth = 3
+    ctx.beginPath()
+    ctx.moveTo(-15, -2)
+    ctx.lineTo(-15, 4)
+    ctx.lineTo(-13, 7)
+    ctx.stroke()
+
+    ctx.fillStyle = '#334155'
+    ctx.beginPath()
+    ctx.moveTo(-16, -3)
+    ctx.lineTo(-12, -5)
+    ctx.lineTo(-11, -2)
+    ctx.lineTo(-15, 0)
+    ctx.closePath()
+    ctx.fill()
+
+    ctx.fillStyle = '#fbbf24'
+    ctx.beginPath()
+    ctx.arc(-13.5, -1.5, 1.5, 0, Math.PI * 2)
+    ctx.fill()
 
   } else if (type === 'npc') {
-    const skinColors: Record<string, { body: string; torso: string; pants: string; hat: string; extra: string }> = {
-      Merchant: { body: '#fde68a', torso: '#22c55e', pants: '#166534', hat: '#fbbf24', extra: '#0f766e' },
-      Guard: { body: '#fde68a', torso: '#3b82f6', pants: '#1e3a8a', hat: '#94a3b8', extra: '#1e293b' },
-      Elder: { body: '#fde68a', torso: '#6b7280', pants: '#374151', hat: '#8B5E3C', extra: '#4a3c28' },
-      Blacksmith: { body: '#fde68a', torso: '#f97316', pants: '#431407', hat: '#ea580c', extra: '#64748b' },
-      Farmer: { body: '#fde68a', torso: '#8B6914', pants: '#4a2c0a', hat: '#a3e635', extra: '#65a30d' },
+    const wc = walkCycle
+    const blink = blinkCycle
+    const skin = '#fde68a'
+
+    const npcConfig: Record<string, {
+      torso: string; pants: string; hat: string; hat2: string;
+      accent: string; shoes: string; beard?: string; hair?: string
+    }> = {
+      Merchant: { torso: '#22c55e', pants: '#166534', hat: '#fbbf24', hat2: '#b45309', accent: '#0f766e', shoes: '#78350f' },
+      Guard: { torso: '#3b82f6', pants: '#1e3a8a', hat: '#94a3b8', hat2: '#475569', accent: '#ef4444', shoes: '#1e293b' },
+      Elder: { torso: '#6b7280', pants: '#374151', hat: '#8B5E3C', hat2: '#6b4226', accent: '#9ca3af', shoes: '#1f2937', beard: '#f8fafc', hair: '#9ca3af' },
+      Blacksmith: { torso: '#f97316', pants: '#431407', hat: '#92400e', hat2: '#78350f', accent: '#64748b', shoes: '#292524' },
+      Farmer: { torso: '#8B6914', pants: '#4a2c0a', hat: '#a3e635', hat2: '#65a30d', accent: '#eab308', shoes: '#44403c' },
     }
-    const c = skinColors[name] || skinColors.Merchant
-    const wc = walkCycle * 1.5
+    const c = npcConfig[name] || npcConfig.Merchant
 
     ctx.fillStyle = c.pants
-    ctx.fillRect(-8, 4 + wc * -1, 7, 8)
-    ctx.fillRect(1, 4 + wc, 7, 8)
+    ctx.fillRect(-8, 5 + wc * -1, 7, 8)
+    ctx.fillRect(1, 5 + wc, 7, 8)
+
+    ctx.fillStyle = c.shoes
+    ctx.fillRect(-9, 12 + wc * -1, 8, 3)
+    ctx.fillRect(0, 12 + wc, 8, 3)
 
     ctx.fillStyle = c.torso
-    ctx.fillRect(-8, -3 + wc, 16, 9)
-    ctx.fillRect(-9, -2 + wc, 2, 6)
-    ctx.fillRect(7, -2 + wc, 2, 6)
+    ctx.beginPath()
+    ctx.moveTo(-8, -2)
+    ctx.lineTo(8, -2)
+    ctx.lineTo(9, 7)
+    ctx.lineTo(-9, 7)
+    ctx.closePath()
+    ctx.fill()
 
-    ctx.fillStyle = '#fde68a'
-    ctx.fillRect(-7, -4 + wc, 14, 2)
-    ctx.fillRect(-5, -5 + wc, 10, 2)
-
-    ctx.fillStyle = c.hat
-    ctx.fillRect(-7, -11 + wc, 14, 6)
-    ctx.fillRect(-9, -8 + wc, 18, 3)
-    ctx.fillRect(-8, -9 + wc, 16, 2)
-
-    ctx.fillStyle = c.torso
-    ctx.fillRect(-6, -1 + wc, 3, 2)
-    ctx.fillRect(3, -1 + wc, 3, 2)
-
-    ctx.fillStyle = '#f8fafc'
-    ctx.fillRect(-7, -9 + wc, 4, 4)
-    ctx.fillRect(3, -9 + wc, 4, 4)
-    ctx.fillStyle = '#1e293b'
-    ctx.fillRect(-6, -8 + wc, 2, 2)
-    ctx.fillRect(4, -8 + wc, 2, 2)
-
-    ctx.fillStyle = c.torso
-    ctx.fillRect(-6, 10 + wc * -1, 4, 4)
-    ctx.fillRect(2, 10 + wc, 4, 4)
-
-    if (name === 'Merchant') {
-      ctx.fillStyle = '#0f766e'
-      ctx.fillRect(-3, -1 + wc, 6, 3)
-      ctx.fillStyle = '#14b8a6'
-      ctx.fillRect(-2, 0 + wc, 4, 2)
-    } else if (name === 'Guard') {
-      ctx.fillStyle = '#94a3b8'
-      ctx.fillRect(-16, -2 + wc, 5, 12)
-      ctx.fillStyle = '#cbd5e1'
-      ctx.fillRect(-15, -2 + wc, 3, 10)
-      ctx.fillStyle = '#475569'
-      ctx.fillRect(-17, -4 + wc, 7, 3)
-      ctx.fillStyle = '#ef4444'
-      ctx.fillRect(-17, -4 + wc, 7, 1)
-    } else if (name === 'Elder') {
-      ctx.fillStyle = '#6b7280'
-      ctx.fillRect(-3, -2 + wc, 6, 6)
-      ctx.fillStyle = '#9ca3af'
-      ctx.fillRect(-1, -2 + wc, 2, 8)
-      ctx.fillStyle = '#8B5E3C'
-      ctx.fillRect(-1, -14 + wc, 2, 4)
-    } else if (name === 'Blacksmith') {
-      ctx.fillStyle = '#ea580c'
-      ctx.fillRect(-5, -14 + wc, 10, 3)
-      ctx.fillStyle = '#64748b'
-      ctx.fillRect(10, 0 + wc, 4, 8)
-      ctx.fillStyle = '#94a3b8'
-      ctx.fillRect(11, -1 + wc, 2, 2)
-      ctx.fillStyle = '#8B6914'
-      ctx.fillRect(10, 8 + wc, 4, 2)
-      ctx.fillStyle = '#f87171'
-      ctx.fillRect(-15, 1 + wc, 3, 3)
-    } else if (name === 'Farmer') {
-      ctx.fillStyle = '#65a30d'
-      ctx.fillRect(-14, 1 + wc, 4, 8)
-      ctx.fillStyle = '#4d7c0f'
-      ctx.fillRect(-15, 0 + wc, 6, 2)
-      ctx.fillStyle = '#a3e635'
-      ctx.fillRect(-14, 3 + wc, 4, 4)
+    if (name === 'Guard') {
+      ctx.fillStyle = '#1e3a8a'
+      ctx.fillRect(-9, -2, 18, 2)
     }
 
-    ctx.fillStyle = c.torso
-    ctx.fillRect(-6, 10 + wc * -1, 4, 4)
-    ctx.fillRect(2, 10 + wc, 4, 4)
+    ctx.fillStyle = c.accent
+    ctx.fillRect(-2, 1, 4, 4)
+
+    ctx.fillStyle = skin
+    ctx.beginPath()
+    ctx.ellipse(0, -10, 6.5, 7.5, 0, 0, Math.PI * 2)
+    ctx.fill()
+
+    drawEye(-3, -11, blink)
+    drawEye(3, -11, blink)
+    drawBrow(-3, -13.5, -0.3)
+    drawBrow(3, -13.5, 0.3)
+    drawNose(0, -9)
+    drawMouth(0, -7, 2)
+
+    if (name === 'Elder' && c.beard) {
+      drawBeard(0, -6, 8, 7, c.beard)
+    }
+    if (name === 'Merchant') {
+      drawBeard(0, -6, 5, 3, '#8B6914')
+    }
+    if (name === 'Guard') {
+      ctx.fillStyle = '#475569'
+      ctx.fillRect(-6, -18, 12, 3)
+      ctx.fillRect(-5, -19, 10, 2)
+      ctx.fillRect(-8, -16, 16, 2)
+      ctx.fillStyle = '#ef4444'
+      ctx.fillRect(-1, -21, 2, 4)
+      ctx.fillRect(-8, -16, 4, 1)
+      ctx.fillRect(4, -16, 4, 1)
+    } else if (name === 'Merchant') {
+      ctx.fillStyle = c.hat2
+      ctx.beginPath()
+      ctx.moveTo(-6, -16)
+      ctx.lineTo(6, -16)
+      ctx.lineTo(8, -8)
+      ctx.lineTo(-8, -8)
+      ctx.closePath()
+      ctx.fill()
+      ctx.fillStyle = c.hat
+      ctx.beginPath()
+      ctx.moveTo(-9, -9)
+      ctx.lineTo(9, -9)
+      ctx.lineTo(7, -12)
+      ctx.lineTo(-7, -12)
+      ctx.closePath()
+      ctx.fill()
+      ctx.fillStyle = '#fbbf24'
+      ctx.beginPath()
+      ctx.arc(0, -17, 3, 0, Math.PI * 2)
+      ctx.fill()
+    } else if (name === 'Elder') {
+      ctx.fillStyle = c.hat
+      ctx.beginPath()
+      ctx.moveTo(-8, -15)
+      ctx.lineTo(8, -15)
+      ctx.lineTo(6, -9)
+      ctx.lineTo(-6, -9)
+      ctx.closePath()
+      ctx.fill()
+      ctx.fillStyle = c.hat2
+      ctx.fillRect(-6, -19, 12, 5)
+      ctx.fillRect(-4, -21, 8, 3)
+    } else if (name === 'Blacksmith') {
+      ctx.fillStyle = c.hat
+      ctx.fillRect(-7, -16, 14, 3)
+      ctx.fillRect(-5, -19, 10, 4)
+      ctx.fillStyle = c.hat2
+      ctx.fillRect(-5, -20, 10, 2)
+      ctx.fillStyle = '#1e1b1b'
+      ctx.beginPath()
+      ctx.arc(5, -10, 2.5, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#f8fafc'
+      ctx.beginPath()
+      ctx.arc(5, -10, 1, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#64748b'
+      ctx.fillRect(9, -1, 4, 9)
+      ctx.fillStyle = '#94a3b8'
+      ctx.fillRect(10, -2, 2, 2)
+      ctx.fillStyle = '#f97316'
+      ctx.fillRect(9, 8, 4, 3)
+      ctx.fillStyle = '#292524'
+      ctx.fillRect(8, 0, 2, 7)
+    } else if (name === 'Farmer') {
+      ctx.fillStyle = c.hat
+      ctx.beginPath()
+      ctx.ellipse(0, -17, 7, 2.5, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = c.hat2
+      ctx.fillRect(-5, -23, 10, 6)
+      ctx.fillRect(-3, -24, 6, 2)
+      ctx.fillStyle = '#65a30d'
+      ctx.fillRect(-13, 1, 4, 8)
+      ctx.fillStyle = '#4d7c0f'
+      ctx.fillRect(-14, 0, 6, 2)
+    }
+
+    if (name === 'Guard') {
+      ctx.strokeStyle = '#94a3b8'
+      ctx.lineWidth = 2.5
+      ctx.beginPath()
+      ctx.moveTo(-15, -1)
+      ctx.lineTo(-15, 8)
+      ctx.stroke()
+      ctx.fillStyle = '#cbd5e1'
+      ctx.beginPath()
+      ctx.moveTo(-17, -3)
+      ctx.lineTo(-13, -3)
+      ctx.lineTo(-13, -1)
+      ctx.lineTo(-17, -1)
+      ctx.closePath()
+      ctx.fill()
+      ctx.fillStyle = '#cbd5e1'
+      ctx.beginPath()
+      ctx.moveTo(-13, 7)
+      ctx.lineTo(-17, 7)
+      ctx.lineTo(-16, 10)
+      ctx.lineTo(-14, 10)
+      ctx.closePath()
+      ctx.fill()
+    } else if (name === 'Elder') {
+      ctx.fillStyle = '#8B5E3C'
+      ctx.fillRect(-1, -2, 2, 10)
+      ctx.fillStyle = '#6b4226'
+      ctx.fillRect(-2, -3, 4, 2)
+      ctx.fillStyle = '#ef4444'
+      ctx.beginPath()
+      ctx.arc(0, -5, 2, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#f8fafc'
+      ctx.beginPath()
+      ctx.arc(0, -5, 0.8, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#dc2626'
+      ctx.beginPath()
+      ctx.arc(0, -5, 0.5, 0, Math.PI * 2)
+      ctx.fill()
+    } else if (name === 'Merchant') {
+      ctx.fillStyle = '#78350f'
+      ctx.fillRect(-3, 2, 6, 3)
+      ctx.fillStyle = '#0f766e'
+      ctx.fillRect(-4, 2, 8, 1)
+    }
+
+    ctx.fillStyle = c.pants
+    ctx.fillRect(-6, 12 + wc * -1, 4, 4)
+    ctx.fillRect(2, 12 + wc, 4, 4)
 
   } else if (type === 'enemy') {
-    const enemyColors: Record<string, { body: string; torso: string; eye: string; size: number }> = {
-      Bandit: { body: '#8B6914', torso: '#6B4914', eye: '#f8fafc', size: 1 },
-      Skeleton: { body: '#e2e8f0', torso: '#cbd5e1', eye: '#ef4444', size: 1 },
-      Mage: { body: '#3b82f6', torso: '#1d4ed8', eye: '#fbbf24', size: 1 },
-      Goblin: { body: '#22c55e', torso: '#16a34a', eye: '#ef4444', size: 1 },
-      Boss: { body: '#ef4444', torso: '#b91c1c', eye: '#fbbf24', size: 1.4 },
+    const ec: Record<string, { skin: string; torso: string; eye: string; size: number }> = {
+      Bandit: { skin: '#8B6914', torso: '#6B4914', eye: '#f8fafc', size: 1 },
+      Skeleton: { skin: '#e2e8f0', torso: '#cbd5e1', eye: '#ef4444', size: 1 },
+      Mage: { skin: '#3b82f6', torso: '#1d4ed8', eye: '#fbbf24', size: 1 },
+      Goblin: { skin: '#22c55e', torso: '#16a34a', eye: '#ef4444', size: 1 },
+      Boss: { skin: '#ef4444', torso: '#b91c1c', eye: '#fbbf24', size: 1.5 },
     }
-    const ec = enemyColors[name] || { body: '#8B6914', torso: '#6B4914', eye: '#f8fafc', size: 1 }
-    const s = ec.size
+    const e = ec[name] || ec.Bandit
+    const s = e.size
+    const wc = walkCycle * 1.5
+    const idle = Math.sin(t * 2.3) * 1.5 * s
+    const blink = blinkCycle
 
     ctx.translate(0, -(s - 1) * 8)
 
-    if (name === 'Skeleton') {
-      ctx.fillStyle = '#cbd5e1'
-      ctx.fillRect(-8 * s, -4 * s + walkCycle * 1.5, 16 * s, 14 * s)
-      ctx.fillStyle = '#94a3b8'
-      ctx.fillRect(-10 * s, -9 * s + walkCycle * 1.5, 20 * s, 6 * s)
+    ctx.fillStyle = 'rgba(0,0,0,0.2)'
+    ctx.beginPath()
+    ctx.ellipse(0, 15 * s, 12 * s, 4 * s, 0, 0, Math.PI * 2)
+    ctx.fill()
 
-      ctx.fillStyle = '#1e293b'
-      ctx.fillRect(-8 * s, -8 * s + walkCycle * 1.5, 4 * s, 4 * s)
-      ctx.fillRect(4 * s, -8 * s + walkCycle * 1.5, 4 * s, 4 * s)
-      ctx.fillStyle = '#ef4444'
-      ctx.fillRect(-7 * s, -7 * s + walkCycle * 1.5, 2 * s, 2 * s)
-      ctx.fillRect(5 * s, -7 * s + walkCycle * 1.5, 2 * s, 2 * s)
+    if (name === 'Bandit') {
+      const by = Math.sin(t * 2.3) * 0.8
+
+      ctx.fillStyle = '#6B4914'
+      ctx.fillRect(-8 * s, 4 * s + wc * -1 + by, 7 * s, 8 * s)
+      ctx.fillRect(1 * s, 4 * s + wc + by, 7 * s, 8 * s)
+
+      ctx.fillStyle = '#78350f'
+      ctx.fillRect(-9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s)
+      ctx.fillRect(0 * s, 10 * s + wc + by, 8 * s, 3 * s)
+
+      ctx.fillStyle = e.torso
+      ctx.fillRect(-9 * s, -2 * s, 18 * s, 8 * s)
+
+      ctx.fillStyle = '#5a3a0a'
+      ctx.fillRect(-10 * s, -3 * s, 20 * s, 2 * s)
+
+      ctx.fillStyle = '#8B6914'
+      ctx.beginPath()
+      ctx.ellipse(0, -10 * s + by, 6.5 * s, 7.5 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
 
       ctx.fillStyle = '#f8fafc'
-      ctx.fillRect(-1 * s, -3 * s + walkCycle * 1.5, 2 * s, 6 * s)
+      ctx.beginPath()
+      ctx.ellipse(-2.5 * s, -11 * s + by, 3 * s * blink, 3 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(2.5 * s, -11 * s + by, 3 * s * blink, 3 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#1e293b'
+      ctx.beginPath()
+      ctx.ellipse(-2.5 * s, -11 * s + by, 1.5 * s, 2 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(2.5 * s, -11 * s + by, 1.5 * s, 2 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.fillStyle = '#1e1b1b'
+      ctx.beginPath()
+      ctx.arc(4 * s, -12 * s + by, 2 * s, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.strokeStyle = '#4a2c1a'
+      ctx.lineWidth = 1.5 * s
+      ctx.beginPath()
+      ctx.arc(0, -7 * s + by, 2 * s, 0.2, Math.PI - 0.2)
+      ctx.stroke()
+
+      ctx.fillStyle = '#475569'
+      ctx.fillRect(-12 * s, -1 * s, 4 * s, 3 * s)
+      ctx.fillStyle = '#94a3b8'
+      ctx.fillRect(-11 * s, -1 * s, 2 * s, 2 * s)
+
+      ctx.fillStyle = '#6B4914'
+      ctx.fillRect(-6 * s, 12 * s + wc * -1 + by, 4 * s, 4 * s)
+      ctx.fillRect(2 * s, 12 * s + wc + by, 4 * s, 4 * s)
+
+    } else if (name === 'Skeleton') {
+      const by = Math.sin(t * 2.5) * 1
+
+      ctx.fillStyle = '#cbd5e1'
+      ctx.fillRect(-8 * s, 4 * s + wc * -1 + by, 7 * s, 8 * s)
+      ctx.fillRect(1 * s, 4 * s + wc + by, 7 * s, 8 * s)
+
+      ctx.fillStyle = '#94a3b8'
+      ctx.fillRect(-9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s)
+      ctx.fillRect(0 * s, 10 * s + wc + by, 8 * s, 3 * s)
 
       ctx.fillStyle = '#e2e8f0'
-      ctx.fillRect(-6 * s, 10 * s + walkCycle * 1.5 * -1, 4 * s, 4 * s)
-      ctx.fillRect(2 * s, 10 * s + walkCycle * 1.5, 4 * s, 4 * s)
+      ctx.fillRect(-9 * s, -3 * s, 18 * s, 9 * s)
+
+      ctx.strokeStyle = '#94a3b8'
+      ctx.lineWidth = 1 * s
+      ctx.beginPath()
+      ctx.moveTo(-5 * s, 0)
+      ctx.lineTo(-5 * s, 5 * s)
+      ctx.moveTo(5 * s, 0)
+      ctx.lineTo(5 * s, 5 * s)
+      ctx.stroke()
+
+      ctx.fillStyle = '#94a3b8'
+      for (let i = 0; i < 4; i++) {
+        ctx.fillRect(-7 * s + i * 4.5 * s, 1 * s, 2 * s, 1 * s)
+      }
+
+      ctx.fillStyle = '#f1f5f9'
+      ctx.beginPath()
+      ctx.ellipse(0, -10 * s + by, 6 * s, 7 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.fillStyle = '#0f172a'
+      ctx.beginPath()
+      ctx.ellipse(0, -14 * s + by, 4 * s, 1 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.fillStyle = '#1e293b'
+      ctx.beginPath()
+      ctx.ellipse(-2.5 * s, -11 * s + by, 2.5 * s * blink, 3 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(2.5 * s, -11 * s + by, 2.5 * s * blink, 3 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.fillStyle = '#ef4444'
+      ctx.beginPath()
+      ctx.ellipse(-2.5 * s, -11 * s + by, 1.2 * s, 1.8 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(2.5 * s, -11 * s + by, 1.2 * s, 1.8 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.fillStyle = '#f8fafc'
+      ctx.beginPath()
+      ctx.ellipse(-2.5 * s, -11.5 * s + by, 0.5 * s, 0.5 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(2.5 * s, -11.5 * s + by, 0.5 * s, 0.5 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.strokeStyle = '#0f172a'
+      ctx.lineWidth = 1 * s
+      ctx.beginPath()
+      ctx.arc(0, -8 * s + by, 1.5 * s, 0.1, Math.PI - 0.1)
+      ctx.stroke()
+
+      ctx.fillStyle = '#cbd5e1'
+      ctx.fillRect(-9 * s - 1 * s, -1 * s, 3 * s, 7 * s)
+      ctx.fillRect(6 * s + 1 * s, -1 * s, 3 * s, 7 * s)
+
+      ctx.fillStyle = '#e2e8f0'
+      ctx.fillRect(-6 * s, 12 * s + wc * -1 + by, 4 * s, 4 * s)
+      ctx.fillRect(2 * s, 12 * s + wc + by, 4 * s, 4 * s)
 
     } else if (name === 'Mage') {
+      const by = Math.sin(t * 2.3) * 0.8
+
       ctx.fillStyle = '#1d4ed8'
-      ctx.fillRect(-8 * s, -4 * s + walkCycle * 1.5, 16 * s, 14 * s)
+      ctx.fillRect(-8 * s, 4 * s + wc * -1 + by, 7 * s, 8 * s)
+      ctx.fillRect(1 * s, 4 * s + wc + by, 7 * s, 8 * s)
+
+      ctx.fillStyle = '#0f3a8a'
+      ctx.fillRect(-9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s)
+      ctx.fillRect(0 * s, 10 * s + wc + by, 8 * s, 3 * s)
+
+      ctx.fillStyle = '#1d4ed8'
+      ctx.beginPath()
+      ctx.moveTo(-9 * s, -3 * s)
+      ctx.lineTo(9 * s, -3 * s)
+      ctx.lineTo(10 * s, 6 * s)
+      ctx.lineTo(-10 * s, 6 * s)
+      ctx.closePath()
+      ctx.fill()
+
       ctx.fillStyle = '#3b82f6'
-      ctx.fillRect(-10 * s, -11 * s + walkCycle * 1.5, 20 * s, 9 * s)
+      ctx.fillRect(-7 * s, 1 * s, 14 * s, 4 * s)
+
+      drawRobeGlow(0, 2 * s, 14 * s, 4 * s, 0.25 + Math.sin(t * 3) * 0.15)
 
       ctx.fillStyle = '#f8fafc'
-      ctx.fillRect(-7 * s, -8 * s + walkCycle * 1.5, 4 * s, 4 * s)
-      ctx.fillRect(3 * s, -8 * s + walkCycle * 1.5, 4 * s, 4 * s)
-      ctx.fillStyle = '#1e293b'
-      ctx.fillRect(-6 * s, -7 * s + walkCycle * 1.5, 2 * s, 2 * s)
-      ctx.fillRect(4 * s, -7 * s + walkCycle * 1.5, 2 * s, 2 * s)
+      ctx.beginPath()
+      ctx.ellipse(0, -10 * s + by, 6 * s, 7 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
 
-      ctx.fillStyle = '#fbbf24'
-      ctx.fillRect(-1 * s, -14 * s + walkCycle * 1.5, 2 * s, 4 * s)
+      drawEye(-2.5 * s, -11 * s + by, blink, '#3b82f6')
+      drawEye(2.5 * s, -11 * s + by, blink, '#3b82f6')
+      drawBrow(-2.5 * s, -13.5 * s + by, -0.5 * s)
+      drawBrow(2.5 * s, -13.5 * s + by, 0.5 * s)
+      drawNose(0, -9 * s + by)
+      drawMouth(0, -7 * s + by, 1.5 * s)
+
+      ctx.fillStyle = '#1d4ed8'
+      ctx.beginPath()
+      ctx.moveTo(-7 * s, -16 * s + by)
+      ctx.lineTo(7 * s, -16 * s + by)
+      ctx.lineTo(6 * s, -10 * s + by)
+      ctx.lineTo(-6 * s, -10 * s + by)
+      ctx.closePath()
+      ctx.fill()
+      ctx.fillStyle = '#3b82f6'
+      ctx.beginPath()
+      ctx.moveTo(-5 * s, -18 * s + by)
+      ctx.lineTo(5 * s, -18 * s + by)
+      ctx.lineTo(3 * s, -16 * s + by)
+      ctx.lineTo(-3 * s, -16 * s + by)
+      ctx.closePath()
+      ctx.fill()
 
       ctx.fillStyle = '#60a5fa'
-      const robeGlow = Math.sin(t * 3) * 0.2 + 0.8
-      ctx.globalAlpha = robeGlow
-      ctx.fillRect(-9 * s, 2 * s + walkCycle * 1.5, 18 * s, 6 * s)
-      ctx.globalAlpha = 1
+      ctx.beginPath()
+      ctx.arc(0, -20 * s + by, 2 * s, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#93c5fd'
+      ctx.beginPath()
+      ctx.arc(0, -20 * s + by, 1 * s, 0, Math.PI * 2)
+      ctx.fill()
 
       ctx.fillStyle = '#3b82f6'
-      ctx.fillRect(-6 * s, 10 * s + walkCycle * 1.5 * -1, 4 * s, 4 * s)
-      ctx.fillRect(2 * s, 10 * s + walkCycle * 1.5, 4 * s, 4 * s)
+      const orbY = Math.sin(t * 2.8) * 3 * s
+      ctx.beginPath()
+      ctx.arc(12 * s, -2 * s + orbY, 3.5 * s, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#93c5fd'
+      ctx.beginPath()
+      ctx.arc(12 * s, -2 * s + orbY, 2 * s, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#bfdbfe'
+      ctx.beginPath()
+      ctx.arc(12 * s, -3 * s + orbY, 1 * s, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.globalAlpha = 0.2 + Math.sin(t * 4) * 0.1
+      ctx.fillStyle = '#93c5fd'
+      ctx.beginPath()
+      ctx.arc(12 * s, -2 * s + orbY, 5 * s, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.globalAlpha = 1
+
+      ctx.fillStyle = '#1d4ed8'
+      ctx.fillRect(-6 * s, 12 * s + wc * -1 + by, 4 * s, 4 * s)
+      ctx.fillRect(2 * s, 12 * s + wc + by, 4 * s, 4 * s)
 
     } else if (name === 'Goblin') {
-      ctx.fillStyle = '#22c55e'
-      ctx.fillRect(-8 * s, -4 * s + walkCycle * 1.5, 16 * s, 14 * s)
+      const by = Math.sin(t * 2.7) * 1.2
+
       ctx.fillStyle = '#16a34a'
-      ctx.fillRect(-10 * s, -9 * s + walkCycle * 1.5, 20 * s, 6 * s)
+      ctx.fillRect(-8 * s, 4 * s + wc * -1 + by, 7 * s, 8 * s)
+      ctx.fillRect(1 * s, 4 * s + wc + by, 7 * s, 8 * s)
+
+      ctx.fillStyle = '#14532d'
+      ctx.fillRect(-9 * s, 10 * s + wc * -1 + by, 8 * s, 3 * s)
+      ctx.fillRect(0 * s, 10 * s + wc + by, 8 * s, 3 * s)
+
+      ctx.fillStyle = '#16a34a'
+      ctx.fillRect(-8 * s, -2 * s, 16 * s, 8 * s)
+
+      ctx.fillStyle = '#15803d'
+      ctx.fillRect(-9 * s, -3 * s, 18 * s, 2 * s)
+
+      ctx.fillStyle = '#22c55e'
+      ctx.beginPath()
+      ctx.ellipse(0, -10 * s + by, 6 * s, 6.5 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+
+      drawGoblinEar(-6 * s, -10 * s + by, -1)
+      drawGoblinEar(6 * s, -10 * s + by, 1)
 
       ctx.fillStyle = '#fef08a'
-      ctx.fillRect(-8 * s, -8 * s + walkCycle * 1.5, 4 * s, 4 * s)
-      ctx.fillRect(4 * s, -8 * s + walkCycle * 1.5, 4 * s, 4 * s)
-      ctx.fillStyle = '#ef4444'
-      ctx.fillRect(-7 * s, -7 * s + walkCycle * 1.5, 2 * s, 2 * s)
-      ctx.fillRect(5 * s, -7 * s + walkCycle * 1.5, 2 * s, 2 * s)
+      ctx.beginPath()
+      ctx.ellipse(-2.5 * s, -11.5 * s + by, 2.8 * s * blink, 2.8 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(2.5 * s, -11.5 * s + by, 2.8 * s * blink, 2.8 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#dc2626'
+      ctx.beginPath()
+      ctx.ellipse(-2.5 * s, -11.5 * s + by, 1.5 * s, 1.8 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(2.5 * s, -11.5 * s + by, 1.5 * s, 1.8 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.fillStyle = '#16a34a'
+      ctx.beginPath()
+      ctx.ellipse(0, -8.5 * s + by, 2.5 * s, 2.5 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.fillStyle = '#14532d'
+      ctx.beginPath()
+      ctx.arc(0, -8.5 * s + by, 1.2 * s, 0, Math.PI)
+      ctx.fill()
+
+      ctx.strokeStyle = '#14532d'
+      ctx.lineWidth = 1.5 * s
+      ctx.beginPath()
+      ctx.arc(0, -7 * s + by, 2 * s, 0.2, Math.PI - 0.2)
+      ctx.stroke()
+
+      ctx.fillStyle = '#15803d'
+      ctx.fillRect(-7 * s, -14 * s + by, 14 * s, 2.5 * s)
+      ctx.fillRect(-8 * s, -13 * s + by, 16 * s, 1.5 * s)
 
       ctx.fillStyle = '#dc2626'
-      ctx.fillRect(-8 * s, -12 * s + walkCycle * 1.5, 16 * s, 3 * s)
-
-      ctx.fillStyle = '#ef4444'
-      ctx.fillRect(-14 * s, -2 * s + walkCycle * 1.5, 3 * s, 4 * s)
+      ctx.fillRect(-14 * s, -1 * s, 4 * s, 4 * s)
+      ctx.strokeStyle = '#450a0a'
+      ctx.lineWidth = 1.5 * s
+      ctx.beginPath()
+      ctx.moveTo(-12 * s, -1 * s)
+      ctx.lineTo(-12 * s, 5 * s)
+      ctx.stroke()
+      ctx.fillStyle = '#b91c1c'
+      ctx.beginPath()
+      ctx.moveTo(-14 * s, -2 * s)
+      ctx.lineTo(-10 * s, -2 * s)
+      ctx.lineTo(-11 * s, 0)
+      ctx.lineTo(-13 * s, 0)
+      ctx.closePath()
+      ctx.fill()
 
       ctx.fillStyle = '#22c55e'
-      ctx.fillRect(-6 * s, 10 * s + walkCycle * 1.5 * -1, 4 * s, 4 * s)
-      ctx.fillRect(2 * s, 10 * s + walkCycle * 1.5, 4 * s, 4 * s)
+      ctx.fillRect(-6 * s, 12 * s + wc * -1 + by, 4 * s, 4 * s)
+      ctx.fillRect(2 * s, 12 * s + wc + by, 4 * s, 4 * s)
 
     } else if (name === 'Boss') {
-      ctx.fillStyle = '#b91c1c'
-      ctx.fillRect(-10 * s, -5 * s + walkCycle * 1.5, 20 * s, 18 * s)
+      const by = 0
+
       ctx.fillStyle = '#7f1d1d'
-      ctx.fillRect(-12 * s, -11 * s + walkCycle * 1.5, 24 * s, 8 * s)
+      ctx.fillRect(-10 * s, 4 * s + wc * -1 + by, 9 * s, 10 * s)
+      ctx.fillRect(1 * s, 4 * s + wc + by, 9 * s, 10 * s)
+
+      ctx.fillStyle = '#450a0a'
+      ctx.fillRect(-11 * s, 12 * s + wc * -1 + by, 10 * s, 5 * s)
+      ctx.fillRect(0 * s, 12 * s + wc + by, 10 * s, 5 * s)
+
+      ctx.fillStyle = '#b91c1c'
+      ctx.fillRect(-11 * s, -4 * s, 22 * s, 11 * s)
+
+      ctx.fillStyle = '#991b1b'
+      ctx.fillRect(-12 * s, -5 * s, 24 * s, 2 * s)
+
+      ctx.fillStyle = '#dc2626'
+      ctx.fillRect(-7 * s, -1 * s, 4 * s, 3 * s)
+      ctx.fillRect(3 * s, -1 * s, 4 * s, 3 * s)
+
+      for (let side = -1; side <= 1; side += 2) {
+        drawSpike(5 * s * side, -4 * s, 4 * s, side)
+        drawSpike(8 * s * side, -2 * s, 3 * s, side)
+        drawSpike(-10 * s * side, 1 * s, 3 * s, side)
+        drawSpike(-8 * s * side, 3 * s, 3.5 * s, side)
+      }
 
       ctx.fillStyle = '#fca5a5'
-      ctx.fillRect(-9 * s, -9 * s + walkCycle * 1.5, 6 * s, 4 * s)
-      ctx.fillRect(3 * s, -9 * s + walkCycle * 1.5, 6 * s, 4 * s)
-      ctx.fillStyle = '#fbbf24'
-      ctx.fillRect(-8 * s, -8 * s + walkCycle * 1.5, 3 * s, 2 * s)
-      ctx.fillRect(5 * s, -8 * s + walkCycle * 1.5, 3 * s, 2 * s)
-
-      ctx.fillStyle = '#450a0a'
-      ctx.fillRect(-1 * s, -4 * s + walkCycle * 1.5, 2 * s, 2 * s)
-
-      ctx.fillStyle = '#fbbf24'
-      const crownBob = Math.sin(t * 2) * 1
-      ctx.fillRect(-4 * s, -15 * s + walkCycle * 1.5 + crownBob, 8 * s, 4 * s)
-      ctx.fillRect(-6 * s, -14 * s + walkCycle * 1.5 + crownBob, 12 * s, 2 * s)
-      ctx.fillRect(-3 * s, -16 * s + walkCycle * 1.5 + crownBob, 2 * s, 2 * s)
-      ctx.fillRect(1 * s, -16 * s + walkCycle * 1.5 + crownBob, 2 * s, 2 * s)
-
-      ctx.fillStyle = '#ef4444'
-      ctx.fillRect(-8 * s, 12 * s + walkCycle * 1.5 * -1, 6 * s, 5 * s)
-      ctx.fillRect(2 * s, 12 * s + walkCycle * 1.5, 6 * s, 5 * s)
-
-    } else {
-      ctx.fillStyle = ec.body
-      ctx.fillRect(-8 * s, -4 * s + walkCycle * 1.5, 16 * s, 14 * s)
-      ctx.fillStyle = ec.torso
-      ctx.fillRect(-10 * s, -9 * s + walkCycle * 1.5, 20 * s, 6 * s)
+      ctx.beginPath()
+      ctx.ellipse(0, -12 * s + by, 8 * s, 9 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
 
       ctx.fillStyle = '#f8fafc'
-      ctx.fillRect(-7 * s, -8 * s + walkCycle * 1.5, 4 * s, 4 * s)
-      ctx.fillRect(3 * s, -8 * s + walkCycle * 1.5, 4 * s, 4 * s)
+      ctx.beginPath()
+      ctx.ellipse(-3.5 * s, -13.5 * s + by, 3.5 * s * blink, 3.5 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(3.5 * s, -13.5 * s + by, 3.5 * s * blink, 3.5 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#fbbf24'
+      ctx.beginPath()
+      ctx.ellipse(-3.5 * s, -13.5 * s + by, 2.5 * s, 3 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(3.5 * s, -13.5 * s + by, 2.5 * s, 3 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#0f172a'
+      ctx.beginPath()
+      ctx.ellipse(-3.5 * s, -13.5 * s + by, 1.2 * s, 1.8 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(3.5 * s, -13.5 * s + by, 1.2 * s, 1.8 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#f8fafc'
+      ctx.beginPath()
+      ctx.ellipse(-3 * s, -14.5 * s + by, 0.6 * s, 0.6 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(4 * s, -14.5 * s + by, 0.6 * s, 0.6 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+
       ctx.fillStyle = '#1e293b'
-      ctx.fillRect(-6 * s, -7 * s + walkCycle * 1.5, 2 * s, 2 * s)
-      ctx.fillRect(4 * s, -7 * s + walkCycle * 1.5, 2 * s, 2 * s)
+      drawBrow(-3.5 * s, -16 * s + by, -1 * s)
+      drawBrow(3.5 * s, -16 * s + by, 1 * s)
+
+      ctx.fillStyle = '#b91c1c'
+      ctx.beginPath()
+      ctx.ellipse(0, -9 * s + by, 2.5 * s, 2 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.strokeStyle = '#450a0a'
+      ctx.lineWidth = 2 * s
+      ctx.beginPath()
+      ctx.arc(0, -8 * s + by, 3 * s, 0.1, Math.PI - 0.1)
+      ctx.stroke()
+
+      ctx.fillStyle = '#fbbf24'
+      const crownBob = Math.sin(t * 2) * 1.5
+      ctx.fillRect(-5 * s, -20 * s + crownBob + by, 10 * s, 4 * s)
+      ctx.fillRect(-7 * s, -19 * s + crownBob + by, 14 * s, 2 * s)
+      ctx.fillRect(-4 * s, -22 * s + crownBob + by, 2.5 * s, 3 * s)
+      ctx.fillRect(1.5 * s, -22 * s + crownBob + by, 2.5 * s, 3 * s)
+      ctx.fillRect(-1 * s, -21 * s + crownBob + by, 2 * s, 2 * s)
+
+      ctx.fillStyle = '#ef4444'
+      ctx.beginPath()
+      ctx.arc(-3 * s, -21 * s + crownBob + by, 1 * s, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.arc(3 * s, -21 * s + crownBob + by, 1 * s, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#3b82f6'
+      ctx.beginPath()
+      ctx.arc(0, -20 * s + crownBob + by, 1 * s, 0, Math.PI * 2)
+      ctx.fill()
 
       ctx.fillStyle = '#450a0a'
-      ctx.fillRect(-3 * s, -2 * s + walkCycle * 1.5, 6 * s, 2 * s)
+      ctx.fillRect(-12 * s, 1 * s, 3 * s, 10 * s)
+      ctx.fillRect(9 * s, 1 * s, 3 * s, 10 * s)
 
-      ctx.fillStyle = ec.body
-      ctx.fillRect(-6 * s, 10 * s + walkCycle * 1.5 * -1, 4 * s, 4 * s)
-      ctx.fillRect(2 * s, 10 * s + walkCycle * 1.5, 4 * s, 4 * s)
+      ctx.fillStyle = '#7f1d1d'
+      ctx.fillRect(-13 * s, 0, 5 * s, 2 * s)
+      ctx.fillRect(8 * s, 0, 5 * s, 2 * s)
+
+      ctx.fillStyle = '#b91c1c'
+      ctx.fillRect(-13 * s, 10 * s, 5 * s, 3 * s)
+      ctx.fillRect(8 * s, 10 * s, 5 * s, 3 * s)
+
+      ctx.fillStyle = '#7f1d1d'
+      ctx.fillRect(-9 * s, 14 * s + wc * -1 + by, 7 * s, 5 * s)
+      ctx.fillRect(2 * s, 14 * s + wc + by, 7 * s, 5 * s)
+
+    } else {
+      ctx.fillStyle = e.torso
+      ctx.fillRect(-8 * s, 4 * s + wc * -1, 7 * s, 8 * s)
+      ctx.fillRect(1 * s, 4 * s + wc, 7 * s, 8 * s)
+
+      ctx.fillStyle = '#2d1b0e'
+      ctx.fillRect(-9 * s, 10 * s + wc * -1, 8 * s, 3 * s)
+      ctx.fillRect(0 * s, 10 * s + wc, 8 * s, 3 * s)
+
+      ctx.fillStyle = e.torso
+      ctx.fillRect(-9 * s, -3 * s, 18 * s, 9 * s)
+
+      ctx.fillStyle = e.skin
+      ctx.beginPath()
+      ctx.ellipse(0, -10 * s, 6 * s, 7 * s, 0, 0, Math.PI * 2)
+      ctx.fill()
+
+      drawEye(-2.5 * s, -11 * s, blink, '#1e293b')
+      drawEye(2.5 * s, -11 * s, blink, '#1e293b')
+      drawBrow(-2.5 * s, -13.5 * s, -0.3 * s)
+      drawBrow(2.5 * s, -13.5 * s, 0.3 * s)
+      drawNose(0, -9 * s)
+      drawMouth(0, -7 * s, 1.5 * s)
+
+      ctx.fillStyle = '#450a0a'
+      ctx.fillRect(-3 * s, -2 * s, 6 * s, 2 * s)
+
+      ctx.fillStyle = e.skin
+      ctx.fillRect(-6 * s, 12 * s + wc * -1, 4 * s, 4 * s)
+      ctx.fillRect(2 * s, 12 * s + wc, 4 * s, 4 * s)
     }
   }
 

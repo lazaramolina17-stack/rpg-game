@@ -62,6 +62,7 @@ function main() {
     content = new ContentManager()
 
     player = { type: 'player', name: 'Hero', x: 4 * 32, y: 12 * 32, alive: true, hp: 100, maxHp: 100, mana: 50, maxMana: 50 }
+    gameEntities.push(player)
 
     const enemies: GameEntity[] = []
     const spawnNPC = (type: string, name: string, x: number, y: number, hp?: number, enemyType?: string) => {

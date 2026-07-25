@@ -183,7 +183,7 @@ export class TouchController {
   }
 
   isTouchDevice(): boolean {
-    return 'ontouchstart' in window || navigator.maxTouchPoints > 0
+    return true
   }
 
   dx(): number {
@@ -208,8 +208,6 @@ export class TouchController {
 
   update() {
     this.justDown.clear()
-
-    if (!this.isTouchDevice()) return
 
     const ctx = this.ctx
     for (const b of this.buttons) {

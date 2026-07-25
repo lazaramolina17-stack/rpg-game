@@ -231,101 +231,156 @@ export function drawEntitySprite(
 
   ctx.translate(0, bobOffset)
 
-  if (type === 'player') {
-    ctx.fillStyle = '#a855f7'
-    ctx.fillRect(-8, -4 + walkCycle * 1.5, 16, 14)
-    ctx.fillStyle = '#9333ea'
-    ctx.fillRect(-12, -10 + walkCycle * 1.5, 24, 8)
+if (type === 'player') {
+    const wc = walkCycle * 1.5
+
+    ctx.fillStyle = '#3b0764'
+    ctx.fillRect(-9, 9 + wc * -1, 8, 5)
+    ctx.fillRect(1, 9 + wc, 8, 5)
+
+    ctx.fillStyle = '#5b21b6'
+    ctx.fillRect(-7, 2 + wc, 14, 8)
+    ctx.fillStyle = '#4c1d95'
+    ctx.fillRect(-7, 2 + wc, 14, 3)
+
+    ctx.fillStyle = '#7c3aed'
+    ctx.fillRect(-10, -3 + wc, 20, 7)
+    ctx.fillStyle = '#6d28d9'
+    ctx.fillRect(-10, -3 + wc, 20, 2)
+
     ctx.fillStyle = '#c084fc'
-    ctx.fillRect(-10, -12 + walkCycle * 1.5, 8, 3)
-    ctx.fillRect(2, -12 + walkCycle * 1.5, 8, 3)
+    ctx.fillRect(-11, -8 + wc, 8, 6)
+    ctx.fillRect(3, -8 + wc, 8, 6)
+
+    ctx.fillStyle = '#fde68a'
+    ctx.fillRect(-4, -12 + wc, 8, 5)
+    ctx.fillRect(-5, -11 + wc, 10, 3)
 
     ctx.fillStyle = '#f8fafc'
-    ctx.fillRect(-8, -8 + walkCycle * 1.5, 4, 4)
-    ctx.fillRect(4, -8 + walkCycle * 1.5, 4, 4)
+    ctx.fillRect(-7, -7 + wc, 4, 4)
+    ctx.fillRect(3, -7 + wc, 4, 4)
     ctx.fillStyle = '#1e293b'
-    ctx.fillRect(-7, -7 + walkCycle * 1.5, 2, 2)
-    ctx.fillRect(5, -7 + walkCycle * 1.5, 2, 2)
+    ctx.fillRect(-6, -6 + wc, 2, 2)
+    ctx.fillRect(4, -6 + wc, 2, 2)
 
     ctx.fillStyle = '#fbbf24'
-    ctx.fillRect(-2, -16 + walkCycle * 1.5, 4, 6)
+    ctx.fillRect(-1, -6 + wc, 2, 2)
+    ctx.fillRect(-1, -4 + wc, 2, 1)
 
     ctx.fillStyle = '#94a3b8'
-    ctx.fillRect(-11, -6 + walkCycle * 1.5, 2, 10)
+    ctx.fillRect(11, 0 + wc, 3, 8)
     ctx.fillStyle = '#cbd5e1'
-    ctx.fillRect(-10, -6 + walkCycle * 1.5, 1, 8)
+    ctx.fillRect(11, -1 + wc, 3, 2)
+    ctx.fillRect(12, 0 + wc, 1, 7)
+
+    ctx.fillStyle = '#fbbf24'
+    ctx.fillRect(12, -1 + wc, 1, 1)
+    ctx.fillRect(11, -1 + wc, 1, 2)
 
     ctx.fillStyle = '#4a4a6a'
-    ctx.fillRect(9, -5 + walkCycle * 1.5, 3, 8)
+    ctx.fillRect(-14, 0 + wc, 4, 7)
     ctx.fillStyle = '#6a6a8a'
-    ctx.fillRect(9, -6 + walkCycle * 1.5, 3, 2)
+    ctx.fillRect(-14, -1 + wc, 4, 2)
+    ctx.fillRect(-13, 0 + wc, 2, 6)
 
-    const capeWave = Math.sin(t * 2) * 2
-    ctx.fillStyle = '#7e22ce'
-    ctx.fillRect(-7, -10 + walkCycle * 1.5 + capeWave, 14, 3)
-    ctx.fillRect(-6, -7 + walkCycle * 1.5 + capeWave, 12, 2)
+    ctx.fillStyle = '#fbbf24'
+    ctx.fillRect(-14, -1 + wc, 1, 1)
+    ctx.fillRect(-11, -1 + wc, 1, 1)
 
-    ctx.fillStyle = '#a855f7'
-    ctx.fillRect(-6, 10 + walkCycle * 1.5 * -1, 4, 4)
-    ctx.fillRect(2, 10 + walkCycle * 1.5, 4, 4)
+    const cw = Math.sin(t * 2) * 2
+    ctx.fillStyle = '#6d28d9'
+    ctx.fillRect(-9, -10 + wc + cw, 18, 4)
+    ctx.fillRect(-8, -7 + wc + cw, 16, 3)
+    ctx.fillRect(-7, -5 + wc + cw, 14, 2)
 
   } else if (type === 'npc') {
-    const skinColors: Record<string, { body: string; torso: string; acc: string }> = {
-      Merchant: { body: '#22c55e', torso: '#16a34a', acc: '#fbbf24' },
-      Guard: { body: '#3b82f6', torso: '#2563ea', acc: '#94a3b8' },
-      Elder: { body: '#9ca3af', torso: '#6b7280', acc: '#8B5E3C' },
-      Blacksmith: { body: '#f97316', torso: '#ea580c', acc: '#64748b' },
-      Farmer: { body: '#8B6914', torso: '#6B4914', acc: '#a3e635' },
+    const skinColors: Record<string, { body: string; torso: string; pants: string; hat: string; extra: string }> = {
+      Merchant: { body: '#fde68a', torso: '#22c55e', pants: '#166534', hat: '#fbbf24', extra: '#0f766e' },
+      Guard: { body: '#fde68a', torso: '#3b82f6', pants: '#1e3a8a', hat: '#94a3b8', extra: '#1e293b' },
+      Elder: { body: '#fde68a', torso: '#6b7280', pants: '#374151', hat: '#8B5E3C', extra: '#4a3c28' },
+      Blacksmith: { body: '#fde68a', torso: '#f97316', pants: '#431407', hat: '#ea580c', extra: '#64748b' },
+      Farmer: { body: '#fde68a', torso: '#8B6914', pants: '#4a2c0a', hat: '#a3e635', extra: '#65a30d' },
     }
-    const colors = skinColors[name] || { body: '#22c55e', torso: '#16a34a', acc: '#fbbf24' }
+    const c = skinColors[name] || skinColors.Merchant
+    const wc = walkCycle * 1.5
 
-    ctx.fillStyle = colors.body
-    ctx.fillRect(-8, -3 + walkCycle * 1.5, 16, 13)
-    ctx.fillStyle = colors.torso
-    ctx.fillRect(-10, -9 + walkCycle * 1.5, 20, 7)
+    ctx.fillStyle = c.pants
+    ctx.fillRect(-8, 4 + wc * -1, 7, 8)
+    ctx.fillRect(1, 4 + wc, 7, 8)
+
+    ctx.fillStyle = c.torso
+    ctx.fillRect(-8, -3 + wc, 16, 9)
+    ctx.fillRect(-9, -2 + wc, 2, 6)
+    ctx.fillRect(7, -2 + wc, 2, 6)
+
     ctx.fillStyle = '#fde68a'
-    ctx.fillRect(-8, -11 + walkCycle * 1.5, 16, 3)
+    ctx.fillRect(-7, -4 + wc, 14, 2)
+    ctx.fillRect(-5, -5 + wc, 10, 2)
+
+    ctx.fillStyle = c.hat
+    ctx.fillRect(-7, -11 + wc, 14, 6)
+    ctx.fillRect(-9, -8 + wc, 18, 3)
+    ctx.fillRect(-8, -9 + wc, 16, 2)
+
+    ctx.fillStyle = c.torso
+    ctx.fillRect(-6, -1 + wc, 3, 2)
+    ctx.fillRect(3, -1 + wc, 3, 2)
 
     ctx.fillStyle = '#f8fafc'
-    ctx.fillRect(-7, -8 + walkCycle * 1.5, 4, 4)
-    ctx.fillRect(3, -8 + walkCycle * 1.5, 4, 4)
+    ctx.fillRect(-7, -9 + wc, 4, 4)
+    ctx.fillRect(3, -9 + wc, 4, 4)
     ctx.fillStyle = '#1e293b'
-    ctx.fillRect(-6, -7 + walkCycle * 1.5, 2, 2)
-    ctx.fillRect(4, -7 + walkCycle * 1.5, 2, 2)
+    ctx.fillRect(-6, -8 + wc, 2, 2)
+    ctx.fillRect(4, -8 + wc, 2, 2)
+
+    ctx.fillStyle = c.torso
+    ctx.fillRect(-6, 10 + wc * -1, 4, 4)
+    ctx.fillRect(2, 10 + wc, 4, 4)
 
     if (name === 'Merchant') {
-      ctx.fillStyle = '#fbbf24'
-      ctx.fillRect(-4, -14 + walkCycle * 1.5, 8, 4)
-      ctx.fillRect(-3, -15 + walkCycle * 1.5, 6, 2)
+      ctx.fillStyle = '#0f766e'
+      ctx.fillRect(-3, -1 + wc, 6, 3)
+      ctx.fillStyle = '#14b8a6'
+      ctx.fillRect(-2, 0 + wc, 4, 2)
     } else if (name === 'Guard') {
       ctx.fillStyle = '#94a3b8'
-      ctx.fillRect(-14, -4 + walkCycle * 1.5, 3, 14)
+      ctx.fillRect(-16, -2 + wc, 5, 12)
       ctx.fillStyle = '#cbd5e1'
-      ctx.fillRect(-13, -4 + walkCycle * 1.5, 1, 12)
+      ctx.fillRect(-15, -2 + wc, 3, 10)
       ctx.fillStyle = '#475569'
-      ctx.fillRect(-15, -5 + walkCycle * 1.5, 5, 2)
+      ctx.fillRect(-17, -4 + wc, 7, 3)
+      ctx.fillStyle = '#ef4444'
+      ctx.fillRect(-17, -4 + wc, 7, 1)
     } else if (name === 'Elder') {
+      ctx.fillStyle = '#6b7280'
+      ctx.fillRect(-3, -2 + wc, 6, 6)
+      ctx.fillStyle = '#9ca3af'
+      ctx.fillRect(-1, -2 + wc, 2, 8)
       ctx.fillStyle = '#8B5E3C'
-      ctx.fillRect(-2, -16 + walkCycle * 1.5, 4, 6)
-      ctx.fillStyle = '#6B3E1C'
-      ctx.fillRect(-1, -17 + walkCycle * 1.5, 2, 2)
+      ctx.fillRect(-1, -14 + wc, 2, 4)
     } else if (name === 'Blacksmith') {
+      ctx.fillStyle = '#ea580c'
+      ctx.fillRect(-5, -14 + wc, 10, 3)
       ctx.fillStyle = '#64748b'
-      ctx.fillRect(10, -3 + walkCycle * 1.5, 4, 8)
+      ctx.fillRect(10, 0 + wc, 4, 8)
       ctx.fillStyle = '#94a3b8'
-      ctx.fillRect(11, -4 + walkCycle * 1.5, 2, 2)
+      ctx.fillRect(11, -1 + wc, 2, 2)
       ctx.fillStyle = '#8B6914'
-      ctx.fillRect(10, 5 + walkCycle * 1.5, 4, 2)
+      ctx.fillRect(10, 8 + wc, 4, 2)
+      ctx.fillStyle = '#f87171'
+      ctx.fillRect(-15, 1 + wc, 3, 3)
     } else if (name === 'Farmer') {
-      ctx.fillStyle = '#a3e635'
-      ctx.fillRect(-12, -2 + walkCycle * 1.5, 3, 10)
       ctx.fillStyle = '#65a30d'
-      ctx.fillRect(-13, -3 + walkCycle * 1.5, 5, 2)
+      ctx.fillRect(-14, 1 + wc, 4, 8)
+      ctx.fillStyle = '#4d7c0f'
+      ctx.fillRect(-15, 0 + wc, 6, 2)
+      ctx.fillStyle = '#a3e635'
+      ctx.fillRect(-14, 3 + wc, 4, 4)
     }
 
-    ctx.fillStyle = colors.body
-    ctx.fillRect(-6, 10 + walkCycle * 1.5 * -1, 4, 4)
-    ctx.fillRect(2, 10 + walkCycle * 1.5, 4, 4)
+    ctx.fillStyle = c.torso
+    ctx.fillRect(-6, 10 + wc * -1, 4, 4)
+    ctx.fillRect(2, 10 + wc, 4, 4)
 
   } else if (type === 'enemy') {
     const enemyColors: Record<string, { body: string; torso: string; eye: string; size: number }> = {

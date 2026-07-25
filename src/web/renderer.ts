@@ -122,8 +122,6 @@ export class Renderer {
     this.drawHUD(ctx, w, h)
     this.drawDamageTexts(ctx)
 
-    drawFogOfWar(ctx, w, h, w / 2, h / 2, 300)
-
     if (this.screenFlash > 0) {
       ctx.fillStyle = `rgba(255,0,0,${this.screenFlash * 0.3})`
       ctx.fillRect(0, 0, w, h)

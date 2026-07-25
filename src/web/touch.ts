@@ -25,15 +25,19 @@ export class TouchController {
 
   private initCameraLook() {
     const rightHalf = (tx: number) => tx > window.innerWidth * 0.4
+    const overlay = () => document.getElementById('touch-overlay')
 
     document.addEventListener('touchstart', (e: Event) => {
       const t = (e as TouchEvent).changedTouches[0]
+      const o = overlay()
+      if (o && o.contains(e.target as Node)) return
       if (rightHalf(t.clientX) && this.lookTouchId === null) {
         this.lookTouchId = t.identifier
         this.lastLookX = t.clientX
         this.lastLookY = t.clientY
+        e.preventDefault()
       }
-    }, { passive: true })
+    }, { passive: false })
 
     document.addEventListener('touchmove', (e: Event) => {
       for (const t of (e as TouchEvent).changedTouches) {
@@ -42,9 +46,10 @@ export class TouchController {
           this.cameraDeltaY += t.clientY - this.lastLookY
           this.lastLookX = t.clientX
           this.lastLookY = t.clientY
+          e.preventDefault()
         }
       }
-    }, { passive: true })
+    }, { passive: false })
 
     document.addEventListener('touchend', (e: Event) => {
       for (const t of (e as TouchEvent).changedTouches) {
@@ -52,11 +57,11 @@ export class TouchController {
           this.lookTouchId = null
         }
       }
-    }, { passive: true })
+    }, { passive: false })
 
     document.addEventListener('touchcancel', () => {
       this.lookTouchId = null
-    }, { passive: true })
+    }, { passive: false })
   }
 
   private el(tag: string, style: string): HTMLElement {

@@ -188,7 +188,7 @@ function main() {
     lastTime = time
 
     if (input.pointerLocked) {
-      renderer.yaw -= input.mouseDeltaX * 0.002
+      renderer.yaw += input.mouseDeltaX * 0.002
       renderer.pitch -= input.mouseDeltaY * 0.002
       renderer.pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, renderer.pitch))
     }
@@ -231,7 +231,7 @@ function main() {
           const len = Math.sqrt(moveX * moveX + moveZ * moveZ)
           moveX /= len; moveZ /= len
           const newX = player.x + moveX * SPEED * dt
-          const newY = player.y - moveZ * SPEED * dt
+          const newY = player.y + moveZ * SPEED * dt
           const tileX = Math.floor(newX / TILE)
           const tileY = Math.floor(newY / TILE)
           if (TILEMAP[tileY]?.[tileX] !== undefined && TILEMAP[tileY][tileX] !== 2) {

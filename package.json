@@ -1,0 +1,24 @@
+{
+  "name": "rpg-engine",
+  "version": "0.1.0",
+  "description": "Modular RPG Game Engine",
+  "type": "module",
+  "main": "dist/main.js",
+  "scripts": {
+    "preinstall": "node -e \"\" || echo '⚠️  Ensure Node.js is installed'",
+    "postinstall": "termux-fix-shebang node_modules/.bin/* 2>/dev/null; echo '✅ Setup complete'",
+    "test": "node node_modules/vitest/vitest.mjs run",
+    "test:watch": "node node_modules/vitest/vitest.mjs",
+    "dev": "node node_modules/tsx/dist/cli.mjs src/main.ts",
+    "build": "node node_modules/typescript/bin/tsc",
+    "lint": "node node_modules/typescript/bin/tsc --noEmit",
+    "start": "node dist/main.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "tsx": "^4.6.0",
+    "vitest": "^1.0.0"
+  }
+}

@@ -62,7 +62,7 @@ interface Particle3D {
 export class Renderer {
   private overlayCtx: CanvasRenderingContext2D
   private scene: THREE.Scene
-  private threeCamera: THREE.OrthographicCamera
+  private threeCamera: THREE.PerspectiveCamera
   private threeRenderer: THREE.WebGLRenderer
   private cameraState: Camera = { x: 0, y: 0, zoom: 1 }
   private entities: Entity[] = []
@@ -83,6 +83,8 @@ export class Renderer {
   showVictory = false
   gameOver = false
   minimapVisible = false
+  yaw = 0
+  pitch = 0
 
   constructor(private canvas: HTMLCanvasElement) {
     const threeCanvas = document.createElement('canvas')
@@ -108,7 +110,9 @@ export class Renderer {
 
     const init = initScene(threeCanvas)
     this.scene = init.scene
-    this.threeCamera = init.camera
+    this.threeCamera = new THREE.PerspectiveCamera(70, this.canvas.clientWidth / this.canvas.clientHeight, 0.1, 100)
+    this.threeCamera.position.set(0, 1.5, 0)
+    this.threeCamera.lookAt(0, 0, -1)
     this.threeRenderer = init.renderer
     init.ground.visible = false
 
@@ -121,6 +125,8 @@ export class Renderer {
   resize() {
     this.canvas.width = window.innerWidth
     this.canvas.height = window.innerHeight
+    this.threeCamera.aspect = this.canvas.width / this.canvas.height
+    this.threeCamera.updateProjectionMatrix()
   }
 
   getCtx() { return this.overlayCtx }
@@ -194,6 +200,8 @@ export class Renderer {
     if (this.showVictory) this.drawVictory(ctx, w, h)
     if (this.minimapVisible) this.drawMinimap(ctx, w, h, this.cameraState)
 
+    this.drawCrosshair(ctx, w, h)
+
     this.frameCount++
     if (time - this.lastFpsTime >= 1000) { this.fps = this.frameCount; this.frameCount = 0; this.lastFpsTime = time }
   }
@@ -201,16 +209,13 @@ export class Renderer {
   private updateThreeCamera() {
     const cam = this.cameraState
     const worldX = cam.x / 32, worldZ = cam.y / 32
-    this.threeCamera.position.set(worldX, 20, worldZ)
-    this.threeCamera.lookAt(worldX, 0, worldZ)
-    const zoom = cam.zoom || 1
-    const aspect = this.canvas.width / this.canvas.height
-    const frustumSize = 30 / zoom
-    this.threeCamera.left = (-frustumSize * aspect) / 2
-    this.threeCamera.right = (frustumSize * aspect) / 2
-    this.threeCamera.top = frustumSize / 2
-    this.threeCamera.bottom = -frustumSize / 2
-    this.threeCamera.updateProjectionMatrix()
+    this.threeCamera.position.set(worldX, 0.8, worldZ)
+    const dir = new THREE.Vector3(
+      Math.sin(this.yaw) * Math.cos(this.pitch),
+      Math.sin(this.pitch),
+      Math.cos(this.yaw) * Math.cos(this.pitch)
+    )
+    this.threeCamera.lookAt(this.threeCamera.position.clone().add(dir))
   }
 
   private updateTileMeshes() {
@@ -272,6 +277,7 @@ export class Renderer {
 
       const alive = e.hp !== undefined ? e.hp > 0 : true
       model.visible = alive
+      if (e.type === 'player') model.visible = false
     }
     for (const [key, model] of this.entityModelMap) {
       if (!currentKeys.has(key)) {
@@ -317,6 +323,49 @@ export class Renderer {
       m.material.dispose()
     }
     this.projectileMeshes = []
+  }
+
+  getCenterTarget(): Entity | null {
+    const raycaster = new THREE.Raycaster()
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), this.threeCamera)
+    const meshToKey = new Map<THREE.Object3D, string>()
+    const targets: THREE.Object3D[] = []
+    for (const [key, model] of this.entityModelMap) {
+      model.traverse(child => {
+        if (child instanceof THREE.Mesh) {
+          targets.push(child)
+          meshToKey.set(child, key)
+        }
+      })
+    }
+    const intersects = raycaster.intersectObjects(targets)
+    if (intersects.length > 0) {
+      const hit = intersects[0].object
+      const key = meshToKey.get(hit)
+      if (key) {
+        const idx = parseInt(key.split('_')[0])
+        if (idx >= 0 && idx < this.entities.length) {
+          return this.entities[idx]
+        }
+      }
+    }
+    return null
+  }
+
+  private drawCrosshair(ctx: CanvasRenderingContext2D, w: number, h: number) {
+    const cx = w / 2, cy = h / 2
+    ctx.strokeStyle = 'rgba(255,255,255,0.8)'
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(cx - 10, cy); ctx.lineTo(cx - 4, cy)
+    ctx.moveTo(cx + 4, cy); ctx.lineTo(cx + 10, cy)
+    ctx.moveTo(cx, cy - 10); ctx.lineTo(cx, cy - 4)
+    ctx.moveTo(cx, cy + 4); ctx.lineTo(cx, cy + 10)
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.arc(cx, cy, 2, 0, Math.PI * 2)
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)'
+    ctx.stroke()
   }
 
   private drawHpBars(ctx: CanvasRenderingContext2D) {

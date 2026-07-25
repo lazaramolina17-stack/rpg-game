@@ -115,10 +115,13 @@ function main() {
   renderer = new Renderer(canvas)
   input = new Input()
   touch = new TouchController(canvas)
+  canvas.addEventListener('click', () => { if (!input.pointerLocked) input.requestPointerLock(canvas) })
   audio = new AudioManager()
 
   initGame()
   audio.playMusic()
+  const loadingEl = document.querySelector('.loading')
+  if (loadingEl) loadingEl.remove()
 
   function triggerCameraShake() {}
 
@@ -184,6 +187,12 @@ function main() {
     const dt = lastTime ? Math.min((time - lastTime) / 1000, 0.05) : 0.016
     lastTime = time
 
+    if (input.pointerLocked) {
+      renderer.yaw -= input.mouseDeltaX * 0.002
+      renderer.pitch -= input.mouseDeltaY * 0.002
+      renderer.pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, renderer.pitch))
+    }
+
     input.update()
 
     const touchDx = touch.dx(), touchDy = touch.dy()
@@ -194,37 +203,71 @@ function main() {
     }
 
     if (gameState === 'playing') {
-      let dx = input.dx(), dy = input.dy()
-      if (useTouch) { dx = touchDx; dy = touchDy }
-      if (dx !== 0 || dy !== 0) {
-        const len = Math.sqrt(dx * dx + dy * dy)
-        dx /= len; dy /= len
-        const newX = player.x + dx * SPEED * dt
-        const newY = player.y + dy * SPEED * dt
-        const tileX = Math.floor(newX / TILE)
-        const tileY = Math.floor(newY / TILE)
-        if (TILEMAP[tileY]?.[tileX] !== undefined && TILEMAP[tileY][tileX] !== 2) {
-          player.x = newX; player.y = newY
-          stepTimer += dt
-          if (stepTimer > 0.3) { stepTimer = 0; audio.playSound('step') }
+      if (useTouch) {
+        let dx = touchDx, dy = touchDy
+        if (dx !== 0 || dy !== 0) {
+          const len = Math.sqrt(dx * dx + dy * dy)
+          dx /= len; dy /= len
+          const newX = player.x + dx * SPEED * dt
+          const newY = player.y + dy * SPEED * dt
+          const tileX = Math.floor(newX / TILE)
+          const tileY = Math.floor(newY / TILE)
+          if (TILEMAP[tileY]?.[tileX] !== undefined && TILEMAP[tileY][tileX] !== 2) {
+            player.x = newX; player.y = newY
+            stepTimer += dt
+            if (stepTimer > 0.3) { stepTimer = 0; audio.playSound('step') }
+          }
+        }
+      } else {
+        const yaw = renderer.yaw
+        const forwardX = Math.sin(yaw), forwardZ = Math.cos(yaw)
+        const rightX = Math.cos(yaw), rightZ = -Math.sin(yaw)
+        let moveX = 0, moveZ = 0
+        if (input.isDown('KeyW')) { moveX += forwardX; moveZ += forwardZ }
+        if (input.isDown('KeyS')) { moveX -= forwardX; moveZ -= forwardZ }
+        if (input.isDown('KeyA')) { moveX -= rightX; moveZ -= rightZ }
+        if (input.isDown('KeyD')) { moveX += rightX; moveZ += rightZ }
+        if (moveX !== 0 || moveZ !== 0) {
+          const len = Math.sqrt(moveX * moveX + moveZ * moveZ)
+          moveX /= len; moveZ /= len
+          const newX = player.x + moveX * SPEED * dt
+          const newY = player.y - moveZ * SPEED * dt
+          const tileX = Math.floor(newX / TILE)
+          const tileY = Math.floor(newY / TILE)
+          if (TILEMAP[tileY]?.[tileX] !== undefined && TILEMAP[tileY][tileX] !== 2) {
+            player.x = newX; player.y = newY
+            stepTimer += dt
+            if (stepTimer > 0.3) { stepTimer = 0; audio.playSound('step') }
+          }
         }
       }
 
-      const attackPressed = input.isPressed('Space') || touch.isPressed('attack')
+      const attackPressed = input.isPressed('Space') || (input.pointerLocked && input.mouse.left) || touch.isPressed('attack')
       if (attackPressed) {
         const now = performance.now()
         if (!player.lastAttack || now - player.lastAttack > ATTACK_COOLDOWN) {
           player.lastAttack = now
-          let closest: GameEntity | null = null
-          let closestDist = ATTACK_RANGE
-          for (const e of gameEntities) {
-            if (e === player || !e.alive || e.type !== 'enemy') continue
-            const d = Math.sqrt((e.x - player.x) ** 2 + (e.y - player.y) ** 2)
-            if (d < closestDist) { closestDist = d; closest = e }
+          let target: GameEntity | null = null
+          const centerTarget = renderer.getCenterTarget()
+          if (centerTarget && centerTarget.type === 'enemy') {
+            target = gameEntities.find(ge =>
+              ge.type === 'enemy' && ge.alive &&
+              ge.name === centerTarget.name &&
+              Math.abs(ge.x - centerTarget.x) < 4 &&
+              Math.abs(ge.y - centerTarget.y) < 4
+            ) || null
           }
-          if (closest) {
-            triggerCombat(player, closest)
-            renderer.addParticles(closest.x, closest.y - 10, '#fbbf24', 6)
+          if (!target) {
+            let closestDist = ATTACK_RANGE
+            for (const e of gameEntities) {
+              if (e === player || !e.alive || e.type !== 'enemy') continue
+              const d = Math.sqrt((e.x - player.x) ** 2 + (e.y - player.y) ** 2)
+              if (d < closestDist) { closestDist = d; target = e }
+            }
+          }
+          if (target) {
+            triggerCombat(player, target)
+            renderer.addParticles(target.x, target.y - 10, '#fbbf24', 6)
           }
         }
       }

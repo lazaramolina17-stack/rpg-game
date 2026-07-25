@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## [0.5.0] - 2026-07-25
+
+### Added
+- D&D Character Creation: raza, clase, atributos (STR/DEX/CON/INT/WIS/CHA), dado d20
+- 6 razas jugables: Humano, Elfo, Enano, Halfling, Dragonborn, SemiElfo
+- 6 clases: Fighter, Wizard, Rogue, Cleric, Ranger, Paladin
+- Sistema de dados D&D (d20 ventaja/desventaja, damage dice)
+- Sistema de magia D&D: 20 hechizos, 8 escuelas, grimorio, spell slots tabla completa
+- Items mágicos: 10 objetos con rareza, atunement, efectos
+- Monsters Manual D&D: 24 monstruos con statblocks completos (CR 1/8 a CR 24)
+- Generador de encuentros balanceados por nivel y dificultad
+- Character Sheet UI: panel completo con atributos, skills, spellcasting, features
+- Pantalla de creación de personaje con 4 fases interactivas
+- Display de tiradas de dados en HUD de combate
+- Atajo [C] para abrir/cerrar ficha de personaje
+
+### Changed
+- main.ts: flujo con character creation antes del juego
+- gameplay.ts: daño basado en dados D&D cuando hay personaje D&D
+- renderer.ts: sheet toggle, scroll, dark theme UI profesional
+
 ## [0.4.0] - 2026-07-25
 
 ### Added

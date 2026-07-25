@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { ProceduralTiles } from './graphics.js'
 import { initScene } from './three-scene.js'
 import { createTileMesh, createPlayerModel, createEnemyModel, createNPCModel, createItemModel, createProjectileModel } from './three-models.js'
-import { RACES, CLASSES, getModifier, DiceRoll } from './dnd.js'
+import { RACES, CLASSES, getModifier, DiceRoll, CharacterSheet, AttributeSet } from './dnd.js'
 
 export const TILE = 32
 
@@ -84,6 +84,9 @@ export class Renderer {
   showVictory = false
   gameOver = false
   minimapVisible = false
+  dndSheetVisible = false
+  dndSheetScrollY = 0
+  _dndSheetCloseRect: { x: number; y: number; w: number; h: number } | null = null
   yaw = 0
   pitch = 0
 
@@ -121,6 +124,26 @@ export class Renderer {
 
     this.resize()
     window.addEventListener('resize', () => this.resize())
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'c' || e.key === 'C') {
+        if (this.charCreationState) return
+        this.toggleDndSheet()
+      }
+      if (e.key === 'Escape' && this.dndSheetVisible) {
+        this.dndSheetVisible = false
+      }
+    })
+    this.canvas.addEventListener('click', (e) => {
+      if (!this.dndSheetVisible) return
+      const r = this._dndSheetCloseRect
+      if (r && e.offsetX >= r.x && e.offsetX <= r.x + r.w && e.offsetY >= r.y && e.offsetY <= r.y + r.h) {
+        this.dndSheetVisible = false
+      }
+    })
+    this.canvas.addEventListener('wheel', (e) => {
+      if (!this.dndSheetVisible) return
+      this.dndSheetScrollY = Math.max(0, this.dndSheetScrollY + e.deltaY)
+    })
   }
 
   resize() {
@@ -142,6 +165,11 @@ export class Renderer {
   setEntities(es: Entity[]) { this.entities = es }
 
   toggleMinimap(visible: boolean) { this.minimapVisible = visible }
+
+  toggleDndSheet() {
+    this.dndSheetVisible = !this.dndSheetVisible
+    this.dndSheetScrollY = 0
+  }
 
   charCreationState: {
     phase: 'race' | 'class' | 'attributes' | 'confirm'
@@ -331,6 +359,8 @@ export class Renderer {
 
     if (this.charCreationState) {
       this.drawCharacterCreation(ctx, w, h)
+    } else if (this.dndSheetVisible) {
+      this.drawDndCharacterSheet(ctx, w, h)
     } else {
       this.drawHpBars(ctx)
       this.drawHUD(ctx, w, h)
@@ -354,6 +384,7 @@ export class Renderer {
       if (this.gameOver) this.drawGameOver(ctx, w, h)
       if (this.showVictory) this.drawVictory(ctx, w, h)
       if (this.minimapVisible) this.drawMinimap(ctx, w, h, this.cameraState)
+      this.drawDndSheetButton(ctx, w, h)
     }
 
     this.drawCrosshair(ctx, w, h)
@@ -552,6 +583,352 @@ export class Renderer {
     ctx.font = 'bold 14px sans-serif'
     ctx.textAlign = 'center'
     ctx.fillText(`d20${typeLabel}: ${lastRoll.rolls.join(' + ')} = ${lastRoll.total}`, x, y + 4)
+  }
+
+  private drawDndSheetButton(ctx: CanvasRenderingContext2D, w: number, h: number) {
+    const bx = w - 46, by = 52, bs = 34
+    ctx.fillStyle = 'rgba(15,23,42,0.85)'
+    this.roundRect(ctx, bx, by, bs, bs, 8)
+    ctx.fill()
+    ctx.strokeStyle = '#a855f7'
+    ctx.lineWidth = 1
+    ctx.stroke()
+    ctx.fillStyle = '#a855f7'
+    ctx.font = 'bold 16px sans-serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('CS', bx + bs / 2, by + bs / 2 + 1)
+    ctx.textBaseline = 'alphabetic'
+    ctx.fillStyle = '#64748b'
+    ctx.font = '8px sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('[C]', bx + bs / 2, by + bs + 12)
+  }
+
+  private drawDndCharacterSheet(ctx: CanvasRenderingContext2D, w: number, h: number) {
+    const hud = this.hud
+    if (!hud?.dndSheet) return
+    const sheet = hud.dndSheet
+    const sc = this.dndSheetScrollY
+
+    ctx.fillStyle = 'rgba(15,23,42,0.95)'
+    ctx.fillRect(0, 0, w, h)
+
+    const pw = Math.min(w - 40, 960), ph = Math.min(h - 40, 800)
+    const px = (w - pw) / 2, py = (h - ph) / 2
+    const baseY = py + 45 - sc
+
+    ctx.fillStyle = 'rgba(15,23,42,0.98)'
+    this.roundRect(ctx, px, py, pw, ph, 12)
+    ctx.fill()
+    ctx.strokeStyle = '#a855f7'
+    ctx.lineWidth = 2
+    ctx.stroke()
+
+    ctx.fillStyle = '#fbbf24'
+    ctx.font = 'bold 20px sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('Character Sheet', w / 2, py + 28)
+
+    const cbx = px + pw - 32, cby = py + 8, cbs = 24
+    ctx.fillStyle = '#ef4444'
+    this.roundRect(ctx, cbx, cby, cbs, cbs, 4)
+    ctx.fill()
+    ctx.fillStyle = '#fff'
+    ctx.font = 'bold 16px sans-serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('×', cbx + cbs / 2, cby + cbs / 2)
+    ctx.textBaseline = 'alphabetic'
+    this._dndSheetCloseRect = { x: cbx, y: cby, w: cbs, h: cbs }
+
+    ctx.save()
+    ctx.beginPath()
+    this.roundRect(ctx, px, py, pw, ph, 12)
+    ctx.clip()
+
+    let curY = baseY
+
+    const fillRoundRect = (x: number, y: number, w: number, h: number, r: number) => {
+      ctx.beginPath()
+      ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y)
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+      ctx.lineTo(x + w, y + h - r)
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+      ctx.lineTo(x + r, y + h)
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+      ctx.lineTo(x, y + r)
+      ctx.quadraticCurveTo(x, y, x + r, y)
+      ctx.closePath()
+      ctx.fill()
+    }
+
+    const secH = (label: string, color: string, content: () => number) => {
+      const gap = 6
+      curY += gap
+      ctx.fillStyle = 'rgba(30,41,59,0.6)'
+      const hRet = content()
+      fillRoundRect(px + 10, curY - 2, pw - 20, hRet + 4, 6)
+      curY += hRet + 4
+    }
+
+    const drawHBar = (label: string, val: number, max: number, x: number, y: number, bw: number, color: string) => {
+      ctx.fillStyle = '#64748b'
+      ctx.font = '9px sans-serif'
+      ctx.textAlign = 'left'
+      ctx.fillText(label, x, y + 10)
+      const bh = 10
+      ctx.fillStyle = '#374151'
+      this.roundRect(ctx, x + 28, y, bw, bh, 3)
+      ctx.fill()
+      const ratio = Math.min(val / max, 1)
+      ctx.fillStyle = color
+      this.roundRect(ctx, x + 28, y, bw * ratio, bh, 3)
+      ctx.fill()
+      ctx.fillStyle = '#e2e8f0'
+      ctx.font = '8px monospace'
+      ctx.textAlign = 'center'
+      ctx.fillText(`${Math.round(val)}/${Math.round(max)}`, x + 28 + bw / 2, y + 8)
+    }
+
+    const attrKeys: (keyof AttributeSet)[] = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']
+    const attrShort = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA']
+    const primaryKey = sheet.class.primaryAbility
+
+    const secRow1 = () => {
+      const iy = curY
+      ctx.fillStyle = '#e2e8f0'
+      ctx.font = 'bold 16px sans-serif'
+      ctx.textAlign = 'left'
+      ctx.fillText(sheet.name, px + 22, iy + 18)
+      ctx.fillStyle = '#94a3b8'
+      ctx.font = '13px sans-serif'
+      ctx.fillText(`${sheet.race.name} ${sheet.class.name}`, px + 22, iy + 38)
+      ctx.fillStyle = '#fbbf24'
+      ctx.font = 'bold 14px sans-serif'
+      ctx.textAlign = 'right'
+      ctx.fillText(`Level ${sheet.level}`, px + pw - 22, iy + 18)
+      ctx.fillStyle = '#a855f7'
+      ctx.font = '11px sans-serif'
+      ctx.fillText(`XP: ${hud.xp} / ${hud.xpToNext}`, px + pw - 22, iy + 38)
+      return 44
+    }
+    secH('', '', secRow1)
+
+    const secAttrs = () => {
+      const iy = curY
+      ctx.fillStyle = '#a855f7'
+      ctx.font = 'bold 12px sans-serif'
+      ctx.textAlign = 'left'
+      ctx.fillText('Attributes', px + 20, iy + 16)
+      for (let i = 0; i < 6; i++) {
+        const col = i % 3
+        const row = Math.floor(i / 3)
+        const ax = px + 20 + col * ((pw - 40) / 3)
+        const ay = iy + 22 + row * 40
+        const score = sheet.attributes[attrKeys[i]]
+        const mod = sheet.modifiers[attrKeys[i]]
+        const isPrimary = attrKeys[i] === primaryKey
+        if (isPrimary) {
+          ctx.fillStyle = 'rgba(168,85,247,0.15)'
+          this.roundRect(ctx, ax, ay, (pw - 40) / 3 - 12, 36, 5)
+          ctx.fill()
+        }
+        ctx.fillStyle = isPrimary ? '#fbbf24' : '#64748b'
+        ctx.font = isPrimary ? 'bold 10px sans-serif' : '9px sans-serif'
+        ctx.textAlign = 'center'
+        ctx.fillText(isPrimary ? `${attrShort[i]} ★` : attrShort[i], ax + ((pw - 40) / 3 - 12) / 2, ay + 11)
+        ctx.fillStyle = score >= 16 ? '#34d399' : score >= 10 ? '#e2e8f0' : '#ef4444'
+        ctx.font = 'bold 17px sans-serif'
+        const scoreX = ax + ((pw - 40) / 3 - 12) / 2 - 16
+        ctx.fillText(String(score), scoreX, ay + 32)
+        ctx.fillStyle = mod >= 0 ? '#34d399' : '#ef4444'
+        ctx.font = 'bold 13px sans-serif'
+        ctx.fillText(`${mod >= 0 ? '+' : ''}${mod}`, scoreX + 34, ay + 32)
+      }
+      return 96
+    }
+    secH('', '', secAttrs)
+
+    const secCombat = () => {
+      const iy = curY
+      ctx.fillStyle = '#3b82f6'
+      ctx.font = 'bold 12px sans-serif'
+      ctx.textAlign = 'left'
+      ctx.fillText('Combat', px + 20, iy + 16)
+      const stats = [
+        { label: 'AC', value: sheet.armorClass, color: '#34d399' },
+        { label: 'Initiative', value: `${sheet.initiative >= 0 ? '+' : ''}${sheet.initiative}`, color: '#f59e0b' },
+        { label: 'Speed', value: `${Math.round(sheet.speed * 30)}ft`, color: '#3b82f6' },
+        { label: 'Prof Bonus', value: `+${sheet.proficiencyBonus}`, color: '#a855f7' },
+      ]
+      const sw = (pw - 40) / 4
+      for (let i = 0; i < 4; i++) {
+        const sx = px + 20 + i * sw
+        ctx.fillStyle = '#64748b'
+        ctx.font = '9px sans-serif'
+        ctx.textAlign = 'center'
+        ctx.fillText(stats[i].label, sx + sw / 2, iy + 30)
+        ctx.fillStyle = stats[i].color
+        ctx.font = 'bold 16px sans-serif'
+        ctx.fillText(String(stats[i].value), sx + sw / 2, iy + 52)
+      }
+      drawHBar('HP', sheet.hitPoints, sheet.maxHitPoints, px + 20, iy + 58, pw - 130, '#34d399')
+      ctx.fillStyle = '#64748b'
+      ctx.font = '9px sans-serif'
+      ctx.textAlign = 'right'
+      ctx.fillText(`HD: d${sheet.hitDie} [${sheet.hitDieCurrent}]`, px + pw - 22, iy + 68)
+      return 88
+    }
+    secH('', '', secCombat)
+
+    const allSkills: { name: string; ability: keyof AttributeSet }[] = [
+      { name: 'Acrobatics', ability: 'dexterity' },
+      { name: 'Animal Handling', ability: 'wisdom' },
+      { name: 'Arcana', ability: 'intelligence' },
+      { name: 'Athletics', ability: 'strength' },
+      { name: 'Deception', ability: 'charisma' },
+      { name: 'History', ability: 'intelligence' },
+      { name: 'Insight', ability: 'wisdom' },
+      { name: 'Intimidation', ability: 'charisma' },
+      { name: 'Investigation', ability: 'intelligence' },
+      { name: 'Medicine', ability: 'wisdom' },
+      { name: 'Nature', ability: 'intelligence' },
+      { name: 'Perception', ability: 'wisdom' },
+      { name: 'Performance', ability: 'charisma' },
+      { name: 'Persuasion', ability: 'charisma' },
+      { name: 'Religion', ability: 'intelligence' },
+      { name: 'Sleight of Hand', ability: 'dexterity' },
+      { name: 'Stealth', ability: 'dexterity' },
+      { name: 'Survival', ability: 'wisdom' },
+    ]
+    const classSkillMap: Record<string, string[]> = {
+      fighter: ['Athletics', 'Perception', 'Survival'],
+      wizard: ['Arcana', 'Investigation', 'History'],
+      rogue: ['Acrobatics', 'Sleight of Hand', 'Stealth', 'Deception'],
+      cleric: ['Insight', 'Medicine', 'Religion'],
+      ranger: ['Animal Handling', 'Nature', 'Perception', 'Survival'],
+      paladin: ['Insight', 'Religion', 'Athletics'],
+    }
+    const profSkills = classSkillMap[sheet.class.id] ?? []
+
+    const secSkills = () => {
+      const iy = curY
+      ctx.fillStyle = '#34d399'
+      ctx.font = 'bold 12px sans-serif'
+      ctx.textAlign = 'left'
+      ctx.fillText('Skills', px + 20, iy + 16)
+      const half = Math.ceil(allSkills.length / 2)
+      const skillColW = (pw - 50) / 2
+      for (let i = 0; i < allSkills.length; i++) {
+        const sk = allSkills[i]
+        const col = i < half ? 0 : 1
+        const row = col === 0 ? i : i - half
+        const sx = px + 20 + col * (skillColW + 10)
+        const sy = iy + 24 + row * 18
+        const abilMod = sheet.modifiers[sk.ability]
+        const prof = profSkills.includes(sk.name)
+        const bonus = abilMod + (prof ? sheet.proficiencyBonus : 0)
+
+        ctx.fillStyle = prof ? '#fbbf24' : '#475569'
+        ctx.strokeStyle = prof ? '#fbbf24' : '#475569'
+        ctx.lineWidth = 1.5
+        const ck = 8
+        ctx.strokeRect(sx, sy + 1, ck, ck)
+        if (prof) {
+          ctx.fillRect(sx + 2, sy + 3, ck - 4, ck - 4)
+        }
+
+        ctx.fillStyle = prof ? '#e2e8f0' : '#94a3b8'
+        ctx.font = prof ? 'bold 10px sans-serif' : '10px sans-serif'
+        ctx.textAlign = 'left'
+        ctx.fillText(sk.name, sx + 14, sy + 9)
+        ctx.fillStyle = '#64748b'
+        ctx.font = '8px sans-serif'
+        ctx.fillText(sk.ability.slice(0, 3).toUpperCase(), sx + 14, sy + 18)
+        ctx.fillStyle = bonus >= 0 ? '#34d399' : '#ef4444'
+        ctx.font = 'bold 11px sans-serif'
+        ctx.textAlign = 'right'
+        ctx.fillText(`${bonus >= 0 ? '+' : ''}${bonus}`, sx + skillColW - 4, sy + 9)
+      }
+      return Math.max(allSkills.length, half) * 18 + 30
+    }
+    secH('', '', secSkills)
+
+    const isCaster = ['wizard', 'cleric', 'paladin', 'ranger'].includes(sheet.class.id)
+    if (isCaster) {
+      const secSpells = () => {
+        const iy = curY
+        ctx.fillStyle = '#3b82f6'
+        ctx.font = 'bold 12px sans-serif'
+        ctx.textAlign = 'left'
+        ctx.fillText('Spellcasting', px + 20, iy + 16)
+        const sdc = 8 + sheet.proficiencyBonus + sheet.modifiers[sheet.class.primaryAbility]
+        const sab = sheet.proficiencyBonus + sheet.modifiers[sheet.class.primaryAbility]
+        ctx.fillStyle = '#e2e8f0'
+        ctx.font = '12px sans-serif'
+        ctx.textAlign = 'center'
+        ctx.fillText(`Spell Save DC: ${sdc}`, px + pw / 2 - 100, iy + 36)
+        ctx.fillText(`Spell Attack: +${sab}`, px + pw / 2 + 100, iy + 36)
+        const slots = sheet.spellSlots
+        const slotLevels = [
+          { lv: 1, val: slots.level1 },
+          { lv: 2, val: slots.level2 },
+          { lv: 3, val: slots.level3 },
+          { lv: 4, val: slots.level4 },
+          { lv: 5, val: slots.level5 },
+        ].filter(s => s.val > 0)
+        let sx = px + pw / 2 - (slotLevels.length * 45) / 2
+        ctx.fillStyle = '#64748b'
+        ctx.font = '9px sans-serif'
+        ctx.textAlign = 'center'
+        ctx.fillText('Slots', px + pw / 2, iy + 52)
+        for (const sl of slotLevels) {
+          ctx.fillStyle = 'rgba(59,130,246,0.2)'
+          this.roundRect(ctx, sx, iy + 58, 40, 22, 4)
+          ctx.fill()
+          ctx.strokeStyle = '#3b82f6'
+          ctx.lineWidth = 1
+          this.roundRect(ctx, sx, iy + 58, 40, 22, 4)
+          ctx.stroke()
+          ctx.fillStyle = '#3b82f6'
+          ctx.font = 'bold 10px sans-serif'
+          ctx.textAlign = 'center'
+          ctx.fillText(`Lv${sl.lv}`, sx + 20, iy + 68)
+          ctx.fillStyle = '#e2e8f0'
+          ctx.font = 'bold 12px sans-serif'
+          ctx.fillText(`${sl.val}`, sx + 20, iy + 78)
+          sx += 45
+        }
+        return 90
+      }
+      secH('', '', secSpells)
+    }
+
+    const secFeatures = () => {
+      const iy = curY
+      ctx.fillStyle = '#f59e0b'
+      ctx.font = 'bold 12px sans-serif'
+      ctx.textAlign = 'left'
+      ctx.fillText('Features & Traits', px + 20, iy + 16)
+      const feats = sheet.features
+      for (let i = 0; i < feats.length; i++) {
+        const f = feats[i]
+        const fy = iy + 26 + i * 38
+        ctx.fillStyle = '#e2e8f0'
+        ctx.font = 'bold 11px sans-serif'
+        ctx.textAlign = 'left'
+        ctx.fillText(`${f.name} (Lv${f.level})`, px + 24, fy + 10)
+        ctx.fillStyle = '#94a3b8'
+        ctx.font = '10px sans-serif'
+        const desc = f.description.length > 80 ? f.description.slice(0, 78) + '…' : f.description
+        ctx.fillText(desc, px + 24, fy + 24)
+      }
+      return feats.length * 38 + 22
+    }
+    secH('', '', secFeatures)
+
+    ctx.restore()
   }
 
   private drawDamageTexts(ctx: CanvasRenderingContext2D) {

@@ -38,10 +38,12 @@ export interface Entity {
 
 export interface HUDData {
   level: number; xp: number; xpToNext: number
-  hp: number; maxHp: number
+  hp: number; maxHp: number; mana: number; maxMana: number
   inventory: ({ type: string; name: string; quantity: number } | null)[]
   quests: { name: string; objective: string; completed: boolean }[]
   allQuestsComplete: boolean; gold: number
+  shopItems?: { name: string; price: string; description: string }[]
+  showShop?: boolean
 }
 
 export interface DamageText {
@@ -244,13 +246,14 @@ export class Renderer {
     }
 
     bar(`❤️ Lv${hud.level}`, hud.hp, hud.maxHp, py + 8, '#34d399')
-    bar('⭐ XP', hud.xp, hud.xpToNext, py + 26, '#a855f7')
+    bar('💠 MP', hud.mana, hud.maxMana, py + 26, '#3b82f6')
+    bar('⭐ XP', hud.xp, hud.xpToNext, py + 44, '#a855f7')
     ctx.fillStyle = '#fbbf24'
     ctx.font = '11px sans-serif'; ctx.textAlign = 'left'
-    ctx.fillText(`💰 ${hud.gold}`, px + 10, py + 56)
+    ctx.fillText(`💰 ${hud.gold}`, px + 10, py + 72)
     ctx.fillStyle = '#94a3b8'
     ctx.font = '10px monospace'
-    ctx.fillText(`FPS:${this.fps} En:${this.entities.length}`, px + 10, py + 76)
+    ctx.fillText(`FPS:${this.fps} En:${this.entities.length}`, px + 10, py + 90)
 
     if (hud.inventory.some(s => s !== null)) {
       const ix = px, iy = py + ph + 8
@@ -290,6 +293,36 @@ export class Renderer {
         ctx.font = '10px sans-serif'
         ctx.fillText(q.objective, qx + 10, qy + 32 + i * 18)
       }
+    }
+
+    if (hud.showShop && hud.shopItems) {
+      const sx = w / 2 - 150, sy = h / 2 - 80
+      ctx.fillStyle = 'rgba(15,23,42,0.95)'
+      this.roundRect(ctx, sx, sy, 300, 160, 12)
+      ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2
+      this.roundRect(ctx, sx, sy, 300, 160, 12)
+      ctx.fillStyle = '#fbbf24'
+      ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center'
+      ctx.fillText('🏪 Shop', w / 2, sy + 24)
+      ctx.fillStyle = '#94a3b8'
+      ctx.font = '10px sans-serif'
+      ctx.fillText(`💰 ${hud.gold} gold`, w / 2, sy + 40)
+      for (let i = 0; i < hud.shopItems.length; i++) {
+        const item = hud.shopItems[i]
+        const iy = sy + 56 + i * 30
+        ctx.fillStyle = '#e2e8f0'
+        ctx.font = '12px sans-serif'; ctx.textAlign = 'left'
+        ctx.fillText(`${i + 1}. ${item.name}`, sx + 16, iy)
+        ctx.fillStyle = '#fbbf24'
+        ctx.font = '11px sans-serif'; ctx.textAlign = 'right'
+        ctx.fillText(`💰${item.price}`, sx + 284, iy)
+        ctx.fillStyle = '#64748b'
+        ctx.font = '9px sans-serif'; ctx.textAlign = 'left'
+        ctx.fillText(item.description, sx + 16, iy + 14)
+      }
+      ctx.fillStyle = '#94a3b8'
+      ctx.font = '10px sans-serif'; ctx.textAlign = 'center'
+      ctx.fillText('[1-3] Comprar  [ESC] Salir', w / 2, sy + 148)
     }
   }
 

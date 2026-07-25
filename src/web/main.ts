@@ -36,6 +36,8 @@ function main() {
   let lastTime = 0
   let stepTimer = 0
   let showMinimap = false
+  let showShop = false
+  let shopType = ''
   let spells: { type: string; x: number; y: number; targetX: number; targetY: number; time: number }[] = []
 
   const dialogues = [
@@ -55,6 +57,8 @@ function main() {
     interactTarget = null
     spells = []
     showMinimap = false
+    showShop = false
+    shopType = ''
     content = new ContentManager()
 
     player = { type: 'player', name: 'Hero', x: 4 * 32, y: 12 * 32, alive: true, hp: 100, maxHp: 100, mana: 50, maxMana: 50 }
@@ -100,6 +104,7 @@ function main() {
     enemies.push(boss)
 
     gameplay = new GameplayManager(player, enemies, items, content)
+    gameplay.onLevelUp = () => { audio.playSound('levelup'); renderer.showLevelUp(player.y - 60) }
     renderer.hud = gameplay.getHUDData()
     renderer.gameOver = false
     renderer.showVictory = false
@@ -115,6 +120,17 @@ function main() {
   audio.playMusic()
 
   function triggerCameraShake() {}
+
+  function findNearestEnemy(): GameEntity | null {
+    let closest: GameEntity | null = null
+    let closestDist = ATTACK_RANGE * 3
+    for (const e of gameEntities) {
+      if (e === player || !e.alive || e.type !== 'enemy') continue
+      const d = Math.sqrt((e.x - player.x) ** 2 + (e.y - player.y) ** 2)
+      if (d < closestDist) { closestDist = d; closest = e }
+    }
+    return closest
+  }
 
   function triggerCombat(attacker: GameEntity, target: GameEntity) {
     let dmg: number
@@ -134,6 +150,7 @@ function main() {
       player.hp! -= dmg
       const msg = `💢 ${attacker.name} hits you for ${dmg}!`
       combatLog.push(msg); if (combatLog.length > 6) combatLog.shift()
+      audio.playSound('hit')
       audio.playSound('enemyHit')
     }
     attacker.lastAttack = performance.now()
@@ -236,19 +253,51 @@ function main() {
           renderer.addParticles(closestItem.x, closestItem.y, '#34d399', 5)
           audio.playSound('pickup')
         } else if (closest) {
-          if (!dialogueShowing || interactTarget !== closest) {
-            interactTarget = closest; closest.dialogueIdx = 0; dialogueShowing = true
-            audio.playSound('dialogue')
+          if (closest.name === 'Merchant' || closest.name === 'Blacksmith') {
+            showShop = true
+            shopType = closest.name === 'Merchant' ? 'merchant' : 'blacksmith'
+            dialogueShowing = false
           } else {
-            closest.dialogueIdx = (closest.dialogueIdx ?? 0) + 1
-            if (closest.dialogueIdx >= (closest.dialogue?.length ?? 0)) dialogueShowing = false
+            showShop = false
+            shopType = ''
+            if (!dialogueShowing || interactTarget !== closest) {
+              interactTarget = closest; closest.dialogueIdx = 0; dialogueShowing = true
+              audio.playSound('dialogue')
+            } else {
+              closest.dialogueIdx = (closest.dialogueIdx ?? 0) + 1
+              if (closest.dialogueIdx >= (closest.dialogue?.length ?? 0)) dialogueShowing = false
+            }
           }
         }
       }
 
+      if (showShop) {
+        if (input.isPressed('Digit1')) { if (gameplay.buyItem(shopType, 0)) audio.playSound('coin') }
+        if (input.isPressed('Digit2')) { if (gameplay.buyItem(shopType, 1)) audio.playSound('coin') }
+        if (input.isPressed('Digit3')) { if (gameplay.buyItem(shopType, 2)) audio.playSound('coin') }
+      }
+
       if (input.isPressed('Escape')) dialogueShowing = false
+      if (input.isPressed('Escape') || touch.isPressed('map')) { dialogueShowing = false; showShop = false; shopType = '' }
       if (input.isPressed('KeyM') || touch.isPressed('map')) showMinimap = !showMinimap
       renderer.toggleMinimap(showMinimap)
+
+      if (input.isPressed('KeyQ')) {
+        const nearest = findNearestEnemy()
+        if (nearest) {
+          const ok = gameplay.castSpell('Fireball', nearest.x, nearest.y)
+          if (ok) {
+            audio.playSound('fireball')
+            const projs = gameplay.getPendingProjectiles()
+            for (const p of projs) spells.push({ ...p, time: performance.now() })
+          }
+        }
+      }
+
+      if (input.isPressed('KeyF')) {
+        const ok = gameplay.castSpell('Heal', 0, 0)
+        if (ok) audio.playSound('heal')
+      }
 
       for (let i = 0; i < 4; i++) {
         if (input.isPressed(`Digit${i + 1}`) || input.isPressed(`Numpad${i + 1}`) || touch.isPressed(`inventory${i + 1}`)) {
@@ -303,7 +352,12 @@ function main() {
 
     renderer.setEntities(renderEntities)
     renderer.hud = gameplay.getHUDData()
-    if (renderer.hud && renderer.hud.allQuestsComplete && gameState === 'playing') {
+    const hud = renderer.hud
+    if (showShop && shopType) {
+      hud.shopItems = gameplay.getShopItems(shopType) as any
+      hud.showShop = true
+    }
+    if (hud && hud.allQuestsComplete && gameState === 'playing') {
       gameState = 'victory'; renderer.showVictory = true
       audio.playSound('victory')
     }

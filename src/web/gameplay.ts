@@ -1,4 +1,5 @@
 import { Entity } from './renderer.js'
+import { ContentManager } from './content.js'
 
 export interface InventoryItem {
   type: string
@@ -71,7 +72,8 @@ export class GameplayManager {
   constructor(
     private player: any,
     private enemies: any[],
-    private items: any[]
+    private items: any[],
+    private content?: ContentManager
   ) {
     this.quests = QUEST_CONFIG.map(q => ({
       ...q,

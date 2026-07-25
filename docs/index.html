@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RPG Game Engine</title>
+<style>
+:root{--bg:#0f172a;--fg:#e2e8f0;--accent:#a855f7;--secondary:#06b6d4;--card:#1e293b}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--fg);line-height:1.6}
+nav{background:var(--card);padding:1rem 2rem;display:flex;gap:1.5rem;align-items:center;border-bottom:1px solid #334155}
+nav a{color:var(--fg);text-decoration:none;font-weight:500}
+nav a:hover{color:var(--accent)}
+.hero{padding:4rem 2rem;text-align:center;background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%)}
+.hero h1{font-size:3rem;background:linear-gradient(135deg,var(--accent),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1rem}
+.hero p{font-size:1.2rem;color:#94a3b8;max-width:600px;margin:0 auto 2rem}
+.badge{display:inline-block;background:var(--accent);color:#fff;padding:.25rem .75rem;border-radius:999px;font-size:.875rem;margin:.25rem}
+.modules{padding:4rem 2rem;max-width:1200px;margin:0 auto}
+.modules h2{font-size:2rem;margin-bottom:2rem;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}
+.card{background:var(--card);border-radius:.75rem;padding:1.5rem;border:1px solid #334155;transition:transform .2s}
+.card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.card h3{color:var(--accent);margin-bottom:.5rem;font-size:1.1rem}
+.card p{color:#94a3b8;font-size:.875rem}
+.card .status{display:inline-block;font-size:.75rem;padding:.15rem .5rem;border-radius:999px;margin-top:.5rem}
+.status.done{background:#05966933;color:#34d399;border:1px solid #059669}
+footer{text-align:center;padding:2rem;color:#64748b;font-size:.875rem;border-top:1px solid #334155}
+</style>
+</head>
+<body>
+<nav>
+  <strong style="color:var(--accent)">RPG Engine</strong>
+  <a href="#modules">Modules</a>
+  <a href="https://github.com/lazaramolina17-stack/rpg-game" target="_blank">GitHub</a>
+  <a href="https://github.com/lazaramolina17-stack/rpg-game/blob/main/README.md" target="_blank">Docs</a>
+</nav>
+
+<div class="hero">
+  <h1>RPG Game Engine</h1>
+  <p>Modular, data-driven RPG engine built with TypeScript + ECS architecture. Designed for extensibility, modding, and multiplayer.</p>
+  <div>
+    <span class="badge">TypeScript</span>
+    <span class="badge">ECS</span>
+    <span class="badge">Modular</span>
+    <span class="badge">Multiplayer</span>
+  </div>
+  <div style="margin-top:2rem">
+    <a href="https://github.com/lazaramolina17-stack/rpg-game" style="display:inline-block;background:var(--accent);color:#fff;padding:.75rem 2rem;border-radius:.5rem;text-decoration:none;font-weight:600">View on GitHub</a>
+  </div>
+</div>
+
+<div class="modules" id="modules">
+  <h2>Implemented Modules</h2>
+  <div class="grid">
+    <div class="card"><h3>Core Engine</h3><p>ECS, EventBus, Config, Logger, ModuleManager with dependency resolution</p><span class="status done">✅</span></div>
+    <div class="card"><h3>World</h3><p>Time cycles, weather system, region management, chunk streaming</p><span class="status done">✅</span></div>
+    <div class="card"><h3>NPC AI</h3><p>Behavior trees, schedules, memory, relationships, faction system</p><span class="status done">✅</span></div>
+    <div class="card"><h3>RPG Systems</h3><p>Stats, progression, talent trees, equipment, item rarities</p><span class="status done">✅</span></div>
+    <div class="card"><h3>Combat</h3><p>Abilities, buffs/debuffs, threat table, damage calculation</p><span class="status done">✅</span></div>
+    <div class="card"><h3>Inventory</h3><p>Containers, item stacks, crafting recipes, profession levels</p><span class="status done">✅</span></div>
+    <div class="card"><h3>Economy</h3><p>Currency, shops, player market, dynamic pricing, supply/demand</p><span class="status done">✅</span></div>
+    <div class="card"><h3>Quests</h3><p>Objectives, branching choices, rewards, reputation, time limits</p><span class="status done">✅</span></div>
+    <div class="card"><h3>Save System</h3><p>Versioned saves, migration, auto-save, backup, cloud sync</p><span class="status done">✅</span></div>
+    <div class="card"><h3>Multiplayer</h3><p>Server-authoritative, custom protocol, replication, anti-cheat</p><span class="status done">✅</span></div>
+    <div class="card"><h3>Database</h3><p>SQLite/PostgreSQL, cached queries, migrations, repositories</p><span class="status done">✅</span></div>
+    <div class="card"><h3>UI/HUD</h3><p>Screen system, action bars, buff tracker, minimap, chat</p><span class="status done">✅</span></div>
+    <div class="card"><h3>Content System</h3><p>Data-driven races, classes, items, zones, achievements</p><span class="status done">✅</span></div>
+    <div class="card"><h3>Modding API</h3><p>Sandboxed Lua/TS scripts, content hooks, asset management</p><span class="status done">✅</span></div>
+  </div>
+</div>
+
+<footer>
+  <p>RPG Game Engine &mdash; MIT License</p>
+  <p>Built with TypeScript &bull; Powered by ZEek Agent System</p>
+</footer>
+</body>
+</html>

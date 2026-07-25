@@ -9,8 +9,8 @@
     "postinstall": "termux-fix-shebang node_modules/.bin/* 2>/dev/null; echo '✅ Setup complete'",
     "test": "node node_modules/vitest/vitest.mjs run",
     "test:watch": "node node_modules/vitest/vitest.mjs",
-    "dev": "node node_modules/tsx/dist/cli.mjs src/main.ts",
     "build": "node node_modules/typescript/bin/tsc",
+    "build:web": "node node_modules/tsx/dist/cli.mjs scripts/build-web.ts",
     "lint": "node node_modules/typescript/bin/tsc --noEmit",
     "start": "node dist/main.js"
   },

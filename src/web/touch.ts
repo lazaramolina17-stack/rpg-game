@@ -6,6 +6,11 @@ export class TouchController {
   private prevPressed = new Set<string>()
   private container: HTMLDivElement
   private joystickKnob: HTMLDivElement
+  private cameraDeltaX = 0
+  private cameraDeltaY = 0
+  private lookTouchId: number | null = null
+  private lastLookX = 0
+  private lastLookY = 0
 
   constructor(private canvas: HTMLCanvasElement) {
     this.container = document.createElement('div')
@@ -15,6 +20,43 @@ export class TouchController {
 
     this.joystickKnob = this.createJoystick()
     this.createButtons()
+    this.initCameraLook()
+  }
+
+  private initCameraLook() {
+    const rightHalf = (tx: number) => tx > window.innerWidth * 0.4
+
+    document.addEventListener('touchstart', (e: Event) => {
+      const t = (e as TouchEvent).changedTouches[0]
+      if (rightHalf(t.clientX) && this.lookTouchId === null) {
+        this.lookTouchId = t.identifier
+        this.lastLookX = t.clientX
+        this.lastLookY = t.clientY
+      }
+    }, { passive: true })
+
+    document.addEventListener('touchmove', (e: Event) => {
+      for (const t of (e as TouchEvent).changedTouches) {
+        if (t.identifier === this.lookTouchId) {
+          this.cameraDeltaX += t.clientX - this.lastLookX
+          this.cameraDeltaY += t.clientY - this.lastLookY
+          this.lastLookX = t.clientX
+          this.lastLookY = t.clientY
+        }
+      }
+    }, { passive: true })
+
+    document.addEventListener('touchend', (e: Event) => {
+      for (const t of (e as TouchEvent).changedTouches) {
+        if (t.identifier === this.lookTouchId) {
+          this.lookTouchId = null
+        }
+      }
+    }, { passive: true })
+
+    document.addEventListener('touchcancel', () => {
+      this.lookTouchId = null
+    }, { passive: true })
   }
 
   private el(tag: string, style: string): HTMLElement {
@@ -132,12 +174,16 @@ export class TouchController {
 
   dx(): number { return this.dxVal }
   dy(): number { return this.dyVal }
+  cameraDx(): number { return this.cameraDeltaX }
+  cameraDy(): number { return this.cameraDeltaY }
 
   isPressed(action: string): boolean { return this.justPressed.has(action) }
   isDown(action: string): boolean { return this.pressed.has(action) }
 
   update() {
     this.justPressed.clear()
+    this.cameraDeltaX = 0
+    this.cameraDeltaY = 0
   }
 
   destroy() {

@@ -193,52 +193,41 @@ function main() {
       renderer.pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, renderer.pitch))
     }
 
-    input.update()
+    renderer.yaw += touch.cameraDx() * 0.01
+    renderer.pitch -= touch.cameraDy() * 0.01
+    renderer.pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, renderer.pitch))
 
-    const touchDx = touch.dx(), touchDy = touch.dy()
-    const useTouch = touch.isTouchDevice() && (touchDx !== 0 || touchDy !== 0)
+    input.update()
 
     if (input.isPressed('KeyR') && (gameState === 'gameover' || gameState === 'victory')) {
       initGame(); audio.playMusic()
     }
 
     if (gameState === 'playing') {
-      if (useTouch) {
-        let dx = touchDx, dy = touchDy
-        if (dx !== 0 || dy !== 0) {
-          const len = Math.sqrt(dx * dx + dy * dy)
-          dx /= len; dy /= len
-          const newX = player.x + dx * SPEED * dt
-          const newY = player.y + dy * SPEED * dt
-          const tileX = Math.floor(newX / TILE)
-          const tileY = Math.floor(newY / TILE)
-          if (TILEMAP[tileY]?.[tileX] !== undefined && TILEMAP[tileY][tileX] !== 2) {
-            player.x = newX; player.y = newY
-            stepTimer += dt
-            if (stepTimer > 0.3) { stepTimer = 0; audio.playSound('step') }
-          }
-        }
-      } else {
-        const yaw = renderer.yaw
-        const forwardX = Math.sin(yaw), forwardZ = Math.cos(yaw)
-        const rightX = Math.cos(yaw), rightZ = -Math.sin(yaw)
-        let moveX = 0, moveZ = 0
-        if (input.isDown('KeyW')) { moveX += forwardX; moveZ += forwardZ }
-        if (input.isDown('KeyS')) { moveX -= forwardX; moveZ -= forwardZ }
-        if (input.isDown('KeyA')) { moveX -= rightX; moveZ -= rightZ }
-        if (input.isDown('KeyD')) { moveX += rightX; moveZ += rightZ }
-        if (moveX !== 0 || moveZ !== 0) {
-          const len = Math.sqrt(moveX * moveX + moveZ * moveZ)
-          moveX /= len; moveZ /= len
-          const newX = player.x + moveX * SPEED * dt
-          const newY = player.y + moveZ * SPEED * dt
-          const tileX = Math.floor(newX / TILE)
-          const tileY = Math.floor(newY / TILE)
-          if (TILEMAP[tileY]?.[tileX] !== undefined && TILEMAP[tileY][tileX] !== 2) {
-            player.x = newX; player.y = newY
-            stepTimer += dt
-            if (stepTimer > 0.3) { stepTimer = 0; audio.playSound('step') }
-          }
+      const yaw = renderer.yaw
+      const forwardX = Math.sin(yaw), forwardZ = Math.cos(yaw)
+      const rightX = Math.cos(yaw), rightZ = -Math.sin(yaw)
+      let moveX = 0, moveZ = 0
+      if (input.isDown('KeyW')) { moveX += forwardX; moveZ += forwardZ }
+      if (input.isDown('KeyS')) { moveX -= forwardX; moveZ -= forwardZ }
+      if (input.isDown('KeyA')) { moveX -= rightX; moveZ -= rightZ }
+      if (input.isDown('KeyD')) { moveX += rightX; moveZ += rightZ }
+      const touchDx = touch.dx(), touchDy = touch.dy()
+      if (touchDx !== 0 || touchDy !== 0) {
+        moveX += -touchDy * forwardX + touchDx * rightX
+        moveZ += -touchDy * forwardZ + touchDx * rightZ
+      }
+      if (moveX !== 0 || moveZ !== 0) {
+        const len = Math.sqrt(moveX * moveX + moveZ * moveZ)
+        moveX /= len; moveZ /= len
+        const newX = player.x + moveX * SPEED * dt
+        const newY = player.y + moveZ * SPEED * dt
+        const tileX = Math.floor(newX / TILE)
+        const tileY = Math.floor(newY / TILE)
+        if (TILEMAP[tileY]?.[tileX] !== undefined && TILEMAP[tileY][tileX] !== 2) {
+          player.x = newX; player.y = newY
+          stepTimer += dt
+          if (stepTimer > 0.3) { stepTimer = 0; audio.playSound('step') }
         }
       }
 

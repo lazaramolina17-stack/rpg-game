@@ -1,4 +1,5 @@
 import { ContentManager, Quest, ShopItem, SpellData, EnemyStats, Skill, EquipmentDef, SlotType, EQUIPMENT, SKILLS } from './content.js'
+import { CharacterSheet, Race, CharacterClass, AttributeSet, createCharacter, levelUp, rollDie, rollDice, rollD20, rollWithAdvantage, DiceRoll, getModifier } from './dnd.js'
 
 export interface InventoryItem {
   type: string
@@ -20,6 +21,8 @@ export interface HUDData {
   allQuestsComplete: boolean
   shopItems?: { name: string; price: string; description: string }[]
   showShop?: boolean
+  dndSheet?: CharacterSheet | null
+  lastDiceRoll?: DiceRoll | null
 }
 
 export interface DamageText {
@@ -85,6 +88,9 @@ export class GameplayManager {
   private questStates: QuestState[] = []
   private pendingProjectiles: { type: string; x: number; y: number; targetX: number; targetY: number }[] = []
 
+  dndSheet: CharacterSheet | null = null
+  private lastDiceRoll: DiceRoll | null = null
+
   constructor(
     private player: Record<string, unknown>,
     private enemies: Record<string, unknown>[],
@@ -105,6 +111,55 @@ export class GameplayManager {
       current: 0,
       completed: false,
     }))
+  }
+
+  initDndCharacter(name: string, race: Race, cls: CharacterClass, attrs: AttributeSet) {
+    this.dndSheet = createCharacter(name, race, cls, attrs)
+    this.player.hp = this.dndSheet.hitPoints
+    this.player.maxHp = this.dndSheet.maxHitPoints
+    this.player.attackDamage = this.dndSheet.modifiers.strength
+    this.player.magicDamage = this.dndSheet.modifiers.intelligence
+    this.player.level = this.dndSheet.level
+  }
+
+  rollD20WithAdvantage(): DiceRoll {
+    const [r1, r2, best] = rollWithAdvantage()
+    this.lastDiceRoll = { rolls: [r1, r2], total: best, sides: 20, type: 'advantage' }
+    return this.lastDiceRoll
+  }
+
+  rollD20WithDisadvantage(): DiceRoll {
+    const [r1, r2, worst] = rollWithDisadvantage()
+    this.lastDiceRoll = { rolls: [r1, r2], total: worst, sides: 20, type: 'disadvantage' }
+    return this.lastDiceRoll
+  }
+
+  rollAttackDice(): DiceRoll {
+    const roll = rollD20()
+    const dnd = this.dndSheet
+    const bonus = dnd ? getModifier(dnd.attributes[dnd.class.primaryAbility]) : 0
+    this.lastDiceRoll = { rolls: [roll], total: roll + bonus, sides: 20, type: 'normal' }
+    return this.lastDiceRoll
+  }
+
+  rollDamageDice(): DiceRoll {
+    const dnd = this.dndSheet
+    if (!dnd) {
+      const dmg = 8 + rollDie(12)
+      this.lastDiceRoll = { rolls: [dmg - 8], total: dmg, sides: 12 }
+      return this.lastDiceRoll
+    }
+    const count = dnd.class.id === 'rogue' ? 2 : 1
+    const hitDie = Math.min(dnd.hitDie, 12)
+    const mod = getModifier(dnd.attributes[dnd.class.primaryAbility])
+    const rolls = rollDice(count, hitDie)
+    const total = rolls.reduce((s, r) => s + r, 0) + mod
+    this.lastDiceRoll = { rolls, total, sides: hitDie }
+    return this.lastDiceRoll
+  }
+
+  getLastDiceRoll(): DiceRoll | null {
+    return this.lastDiceRoll
   }
 
   learnSkill(skillId: string): boolean {
@@ -234,6 +289,10 @@ export class GameplayManager {
   }
 
   calculateDamage(enemy?: Record<string, unknown>): number {
+    if (this.dndSheet) {
+      const roll = this.rollDamageDice()
+      return roll.total
+    }
     const baseAtk = (this.player.attackDamage as number) ?? 5
     const strBonus = ((this.player.skills as Record<string, number>)?.strength ?? 0) * 2
     const equipStats = this.getEquippedStats()
@@ -457,7 +516,20 @@ export class GameplayManager {
         completed: qs.completed,
       })),
       allQuestsComplete: this.allQuestsComplete,
+      dndSheet: this.dndSheet,
+      lastDiceRoll: this.lastDiceRoll,
     }
+  }
+
+  getDndAttackBonus(): number {
+    if (!this.dndSheet) return 0
+    const mod = getModifier(this.dndSheet.attributes[this.dndSheet.class.primaryAbility])
+    return mod + this.dndSheet.proficiencyBonus
+  }
+
+  getDndArmorClass(): number {
+    if (!this.dndSheet) return 10
+    return this.dndSheet.armorClass
   }
 
   private addXp(amount: number) {

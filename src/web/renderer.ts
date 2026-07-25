@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { ProceduralTiles } from './graphics.js'
 import { initScene } from './three-scene.js'
 import { createTileMesh, createPlayerModel, createEnemyModel, createNPCModel, createItemModel, createProjectileModel } from './three-models.js'
+import { RACES, CLASSES, getModifier, DiceRoll } from './dnd.js'
 
 export const TILE = 32
 
@@ -142,6 +143,156 @@ export class Renderer {
 
   toggleMinimap(visible: boolean) { this.minimapVisible = visible }
 
+  charCreationState: {
+    phase: 'race' | 'class' | 'attributes' | 'confirm'
+    raceIndex: number
+    classIndex: number
+    attrs: number[]
+    attrIndex: number
+    name: string
+  } | null = null
+
+  setCharCreationState(state: typeof Renderer.prototype.charCreationState) {
+    this.charCreationState = state
+  }
+
+  drawCharacterCreation(ctx: CanvasRenderingContext2D, w: number, h: number) {
+    const state = this.charCreationState
+    if (!state) return
+    ctx.fillStyle = 'rgba(0,0,0,0.85)'
+    ctx.fillRect(0, 0, w, h)
+    ctx.fillStyle = '#f59e0b'
+    ctx.font = 'bold 28px sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('D&D Character Creation', w / 2, 60)
+    ctx.fillStyle = '#e2e8f0'
+    ctx.font = '14px sans-serif'
+    ctx.fillText('Welcome, adventurer! Create your hero.', w / 2, 90)
+    if (state.phase === 'race') {
+      ctx.fillStyle = '#a855f7'
+      ctx.font = 'bold 18px sans-serif'
+      ctx.fillText('Choose Your Race', w / 2, 140)
+      for (let i = 0; i < RACES.length; i++) {
+        const r = RACES[i]
+        const y = 180 + i * 75
+        ctx.fillStyle = i === state.raceIndex ? '#fbbf24' : '#94a3b8'
+        ctx.font = 'bold 16px sans-serif'
+        ctx.fillText(r.name, 120, y)
+        ctx.fillStyle = '#64748b'
+        ctx.font = '12px sans-serif'
+        ctx.fillText(r.description, 120, y + 18)
+        const bonusParts = Object.entries(r.attributeBonuses).map(([k, v]) => `${k.slice(0, 3).toUpperCase()}+${v}`)
+        ctx.fillStyle = '#34d399'
+        ctx.font = '11px sans-serif'
+        ctx.fillText(bonusParts.join('  '), 120, y + 36)
+        ctx.fillStyle = '#475569'
+        ctx.font = '10px sans-serif'
+        ctx.fillText(r.traits.join(' | '), 120, y + 52)
+        if (i === state.raceIndex) {
+          ctx.fillStyle = '#fbbf24'
+          ctx.fillRect(90, y - 8, 4, 60)
+        }
+      }
+      ctx.fillStyle = '#94a3b8'
+      ctx.font = '12px sans-serif'
+      ctx.fillText('↑↓ Navigate  [Space] Select', w / 2, h - 30)
+    } else if (state.phase === 'class') {
+      ctx.fillStyle = '#3b82f6'
+      ctx.font = 'bold 18px sans-serif'
+      ctx.fillText('Choose Your Class', w / 2, 140)
+      for (let i = 0; i < CLASSES.length; i++) {
+        const c = CLASSES[i]
+        const y = 180 + i * 65
+        ctx.fillStyle = i === state.classIndex ? '#fbbf24' : '#94a3b8'
+        ctx.font = 'bold 16px sans-serif'
+        ctx.fillText(c.name, 120, y)
+        ctx.fillStyle = '#64748b'
+        ctx.font = '12px sans-serif'
+        ctx.fillText(c.description, 120, y + 18)
+        ctx.fillStyle = '#f59e0b'
+        ctx.font = '11px sans-serif'
+        ctx.fillText(`HD: d${c.hitDie}  Primary: ${c.primaryAbility}  Saves: ${c.savingThrowProficiencies.join(', ')}`, 120, y + 36)
+        if (i === state.classIndex) {
+          ctx.fillStyle = '#3b82f6'
+          ctx.fillRect(90, y - 8, 4, 50)
+        }
+      }
+      ctx.fillStyle = '#94a3b8'
+      ctx.font = '12px sans-serif'
+      ctx.fillText('↑↓ Navigate  [Space] Select', w / 2, h - 30)
+    } else if (state.phase === 'attributes') {
+      const attrNames = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma']
+      ctx.fillStyle = '#ef4444'
+      ctx.font = 'bold 18px sans-serif'
+      ctx.fillText('Assign Attributes', w / 2, 140)
+      ctx.fillStyle = '#94a3b8'
+      ctx.font = '12px sans-serif'
+      ctx.fillText('Place each value: 15, 14, 13, 12, 10, 8', w / 2, 165)
+      for (let i = 0; i < attrNames.length; i++) {
+        const y = 200 + i * 48
+        ctx.fillStyle = i === state.attrIndex ? '#fbbf24' : '#e2e8f0'
+        ctx.font = 'bold 16px sans-serif'
+        ctx.textAlign = 'right'
+        ctx.fillText(attrNames[i], w / 2 - 20, y)
+        ctx.textAlign = 'left'
+        ctx.fillStyle = i < state.attrs.length ? '#34d399' : '#475569'
+        ctx.font = 'bold 20px sans-serif'
+        ctx.fillText(i < state.attrs.length ? String(state.attrs[i]) : '--', w / 2 + 10, y)
+        if (i === state.attrIndex) {
+          ctx.fillStyle = '#fbbf24'
+          ctx.fillRect(w / 2 - 30, y - 18, 4, 22)
+        }
+      }
+      if (state.attrs.length < 6) {
+        const remaining = [15, 14, 13, 12, 10, 8]
+        for (const a of state.attrs) {
+          const idx = remaining.indexOf(a)
+          if (idx >= 0) remaining.splice(idx, 1)
+        }
+        ctx.fillStyle = '#94a3b8'
+        ctx.font = '12px sans-serif'
+        ctx.textAlign = 'center'
+        ctx.fillText(`Select value: [${remaining.join('] [')}]  [B]ack`, w / 2, h - 30)
+      } else {
+        ctx.fillStyle = '#94a3b8'
+        ctx.font = '12px sans-serif'
+        ctx.textAlign = 'center'
+        ctx.fillText('[Space] Confirm  [B]ack', w / 2, h - 30)
+      }
+    } else if (state.phase === 'confirm') {
+      ctx.fillStyle = '#fbbf24'
+      ctx.font = 'bold 18px sans-serif'
+      ctx.fillText('Confirm Character', w / 2, 140)
+      const race = RACES[state.raceIndex]
+      const cls = CLASSES[state.classIndex]
+      const attrNames = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA']
+      ctx.fillStyle = '#e2e8f0'
+      ctx.font = '16px sans-serif'; ctx.textAlign = 'center'
+      ctx.fillText(`${race.name} ${cls.name}`, w / 2, 180)
+      ctx.fillStyle = '#94a3b8'
+      ctx.font = '13px sans-serif'
+      ctx.fillText(`${cls.description}`, w / 2, 205)
+      for (let i = 0; i < attrNames.length; i++) {
+        const x = w / 2 - 150 + i * 60
+        ctx.fillStyle = '#64748b'
+        ctx.font = '11px sans-serif'; ctx.textAlign = 'center'
+        ctx.fillText(attrNames[i], x, 245)
+        ctx.fillStyle = '#34d399'
+        ctx.font = 'bold 18px sans-serif'
+        ctx.fillText(String(state.attrs[i]), x, 268)
+        ctx.fillStyle = '#475569'
+        ctx.font = '10px sans-serif'
+        ctx.fillText(`mod ${getModifier(state.attrs[i] as number >= 0 ? state.attrs[i] : 10)}`, x, 283)
+      }
+      ctx.fillStyle = '#a855f7'
+      ctx.font = '13px sans-serif'; ctx.textAlign = 'center'
+      ctx.fillText(`HP: ${cls.hitDie} + CON  AC: ${10 + getModifier(state.attrs[1])}  Speed: ${race.speed}`, w / 2, 315)
+      ctx.fillStyle = '#94a3b8'
+      ctx.font = '12px sans-serif'
+      ctx.fillText('[Space] Begin Adventure!  [B]ack', w / 2, h - 30)
+    }
+  }
+
   addParticles(x: number, y: number, color: string, count = 8) {
     const wx = x / 32, wz = y / 32
     const colorObj = new THREE.Color(color)
@@ -178,27 +329,32 @@ export class Renderer {
     const ctx = this.overlayCtx, w = this.canvas.width, h = this.canvas.height
     ctx.clearRect(0, 0, w, h)
 
-    this.drawHpBars(ctx)
-    this.drawHUD(ctx, w, h)
-    this.drawDamageTexts(ctx)
+    if (this.charCreationState) {
+      this.drawCharacterCreation(ctx, w, h)
+    } else {
+      this.drawHpBars(ctx)
+      this.drawHUD(ctx, w, h)
+      this.drawDamageTexts(ctx)
+      this.drawDiceRoll(ctx, w, h)
 
-    if (this.screenFlash > 0) {
-      ctx.fillStyle = `rgba(255,0,0,${this.screenFlash * 0.3})`
-      ctx.fillRect(0, 0, w, h)
-      this.screenFlash -= dt
-    }
-    if (this.levelUpText > 0) {
-      ctx.fillStyle = '#fbbf24'
-      ctx.font = 'bold 36px sans-serif'
-      ctx.textAlign = 'center'
-      ctx.fillText('LEVEL UP!', w / 2, this.levelUpY)
-      this.levelUpText -= dt
-    }
-    this.drawDebug(ctx)
+      if (this.screenFlash > 0) {
+        ctx.fillStyle = `rgba(255,0,0,${this.screenFlash * 0.3})`
+        ctx.fillRect(0, 0, w, h)
+        this.screenFlash -= dt
+      }
+      if (this.levelUpText > 0) {
+        ctx.fillStyle = '#fbbf24'
+        ctx.font = 'bold 36px sans-serif'
+        ctx.textAlign = 'center'
+        ctx.fillText('LEVEL UP!', w / 2, this.levelUpY)
+        this.levelUpText -= dt
+      }
+      this.drawDebug(ctx)
 
-    if (this.gameOver) this.drawGameOver(ctx, w, h)
-    if (this.showVictory) this.drawVictory(ctx, w, h)
-    if (this.minimapVisible) this.drawMinimap(ctx, w, h, this.cameraState)
+      if (this.gameOver) this.drawGameOver(ctx, w, h)
+      if (this.showVictory) this.drawVictory(ctx, w, h)
+      if (this.minimapVisible) this.drawMinimap(ctx, w, h, this.cameraState)
+    }
 
     this.drawCrosshair(ctx, w, h)
 
@@ -383,6 +539,19 @@ export class Renderer {
       }
     }
     ctx.restore()
+  }
+
+  private drawDiceRoll(ctx: CanvasRenderingContext2D, w: number, h: number) {
+    const lastRoll = this.hud?.lastDiceRoll
+    if (!lastRoll) return
+    const x = w / 2, y = h / 2 + 60
+    ctx.fillStyle = 'rgba(15,23,42,0.9)'
+    this.roundRect(ctx, x - 80, y - 18, 160, 36, 8)
+    const typeLabel = lastRoll.type === 'advantage' ? ' Adv' : lastRoll.type === 'disadvantage' ? ' Dis' : ''
+    ctx.fillStyle = '#fbbf24'
+    ctx.font = 'bold 14px sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText(`d20${typeLabel}: ${lastRoll.rolls.join(' + ')} = ${lastRoll.total}`, x, y + 4)
   }
 
   private drawDamageTexts(ctx: CanvasRenderingContext2D) {

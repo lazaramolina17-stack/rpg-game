@@ -5,6 +5,7 @@ import { ContentManager, EnemyType as ET } from './content.js'
 import { Renderer, Entity, HUDData } from './renderer.js'
 import { Input } from './input.js'
 import { GameplayManager } from './gameplay.js'
+import { RACES, CLASSES, STANDARD_ARRAY, applyRacialBonuses, type AttributeSet, type Race, type CharacterClass } from './dnd.js'
 
 const SPEED = 120
 const ATTACK_RANGE = 40
@@ -105,6 +106,9 @@ function main() {
     enemies.push(boss)
 
     gameplay = new GameplayManager(player, enemies, items, content)
+    if (charName && charRace && charClass && charAttrs) {
+      gameplay.initDndCharacter(charName, charRace, charClass, charAttrs as AttributeSet)
+    }
     gameplay.onLevelUp = () => { audio.playSound('levelup'); renderer.showLevelUp(player.y - 60) }
     renderer.hud = gameplay.getHUDData()
     renderer.gameOver = false
@@ -118,8 +122,107 @@ function main() {
   canvas.addEventListener('click', () => { if (!input.pointerLocked) input.requestPointerLock(canvas) })
   audio = new AudioManager()
 
-  initGame()
-  audio.playMusic()
+  let charName = ''
+  let charRace: Race | null = null
+  let charClass: CharacterClass | null = null
+  let charAttrs: AttributeSet | null = null
+
+  function startCharCreation() {
+    const attrValues = [15, 14, 13, 12, 10, 8]
+    renderer.setCharCreationState({
+      phase: 'race',
+      raceIndex: 0,
+      classIndex: 0,
+      attrs: [],
+      attrIndex: 0,
+      name: 'Hero',
+    })
+    gameState = 'charcreation'
+  }
+
+  function handleCharCreationInput() {
+    const state = renderer.charCreationState
+    if (!state) return
+    const prevPressed = (window as any).__prevKeys || {}
+    const keys: Record<string, boolean> = {}
+    for (const k of ['ArrowUp', 'ArrowDown', 'Space', 'KeyB', 'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6']) {
+      keys[k] = input.isPressed(k)
+    }
+    ;(window as any).__prevKeys = keys
+
+    if (state.phase === 'race') {
+      if (input.isPressed('ArrowDown') || keys.ArrowDown) state.raceIndex = Math.min(RACES.length - 1, state.raceIndex + 1)
+      if (input.isPressed('ArrowUp') || keys.ArrowUp) state.raceIndex = Math.max(0, state.raceIndex - 1)
+      if (input.isPressed('Space') || keys.Space) {
+        charRace = RACES[state.raceIndex]
+        state.phase = 'class'
+        state.classIndex = 0
+      }
+    } else if (state.phase === 'class') {
+      if (input.isPressed('ArrowDown') || keys.ArrowDown) state.classIndex = Math.min(CLASSES.length - 1, state.classIndex + 1)
+      if (input.isPressed('ArrowUp') || keys.ArrowUp) state.classIndex = Math.max(0, state.classIndex - 1)
+      if (input.isPressed('Space') || keys.Space) {
+        charClass = CLASSES[state.classIndex]
+        state.phase = 'attributes'
+        state.attrs = []
+        state.attrIndex = 0
+      }
+      if (input.isPressed('KeyB') || keys.KeyB) { state.phase = 'race'; charRace = null }
+    } else if (state.phase === 'attributes') {
+      if (state.attrs.length < 6) {
+        const remaining = [15, 14, 13, 12, 10, 8]
+        for (const a of state.attrs) {
+          const idx = remaining.indexOf(a)
+          if (idx >= 0) remaining.splice(idx, 1)
+        }
+        const numKey = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6']
+        for (let i = 0; i < remaining.length; i++) {
+          if (input.isPressed(numKey[i])) {
+            state.attrs.push(remaining[i])
+            if (state.attrs.length < 6) {
+              const idx = remaining.indexOf(remaining[i])
+              if (idx >= 0) remaining.splice(idx, 1)
+            }
+            break
+          }
+        }
+      } else {
+        if (input.isPressed('Space')) {
+          charAttrs = {
+            strength: state.attrs[0],
+            dexterity: state.attrs[1],
+            constitution: state.attrs[2],
+            intelligence: state.attrs[3],
+            wisdom: state.attrs[4],
+            charisma: state.attrs[5],
+          }
+          state.phase = 'confirm'
+        }
+      }
+      if (input.isPressed('KeyB') || keys.KeyB) {
+        if (state.attrs.length > 0) {
+          state.attrs.pop()
+        } else {
+          state.phase = 'class'
+          charClass = null
+        }
+      }
+    } else if (state.phase === 'confirm') {
+      if (input.isPressed('Space')) {
+        renderer.setCharCreationState(null)
+        audio.playMusic()
+        initGame()
+        return
+      }
+      if (input.isPressed('KeyB') || keys.KeyB) {
+        state.phase = 'attributes'
+        state.attrs = []
+        charAttrs = null
+      }
+    }
+  }
+
+  startCharCreation()
   const loadingEl = document.querySelector('.loading')
   if (loadingEl) loadingEl.remove()
 
@@ -142,10 +245,11 @@ function main() {
     const baseDmg = stats ? stats.dmg : 10
 
     if (attacker === player) {
-      dmg = 8 + Math.floor(Math.random() * 12)
+      dmg = gameplay.calculateDamage(target)
       if (target.shieldEnd && performance.now() < target.shieldEnd) dmg = Math.floor(dmg * 0.5)
       target.hp! -= dmg
-      const msg = `⚔️ ${attacker.name} hits ${target.name} for ${dmg}!`
+      const diceMsg = gameplay.dndSheet ? ` 🎲${gameplay.getLastDiceRoll()?.rolls.join('+')}=${gameplay.getLastDiceRoll()?.total}` : ''
+      const msg = `⚔️ ${attacker.name} hits ${target.name} for ${dmg}!${diceMsg}`
       combatLog.push(msg); if (combatLog.length > 6) combatLog.shift()
       audio.playSound('attack')
     } else {
@@ -198,6 +302,13 @@ function main() {
     renderer.pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, renderer.pitch))
 
     input.update()
+
+    if (gameState === 'charcreation') {
+      handleCharCreationInput()
+      renderer.render(time, dt)
+      requestAnimationFrame(gameLoop)
+      return
+    }
 
     if (input.isPressed('KeyR') && (gameState === 'gameover' || gameState === 'victory')) {
       initGame(); audio.playMusic()
